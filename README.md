@@ -1,228 +1,218 @@
-# TinyFish UX Guardian
+<a id="top"></a>
+<div align="center">
+  <img src="docs/assets/hero.png" alt="TinyFish UX Guardian: customer confidence, before merge" width="100%">
+  <h1>TinyFish UX Guardian</h1>
+  <p><strong>CodeRabbit reviews your code. TinyFish reviews your user experience.</strong></p>
+  <p>A GitHub Action that tests affected customer journeys against production and puts confirmed regressions, screenshots and AI fix suggestions in your PR.</p>
+  <p>
+    <a href="https://github.com/aranish-uk/ux-guardian/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/aranish-uk/ux-guardian/ci.yml?label=Quality" alt="Quality CI status"></a>
+    <a href="https://www.python.org/downloads/release/python-3120/"><img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12"></a>
+    <a href="NOTICE"><img src="https://img.shields.io/badge/Upstream_license-MIT-blue" alt="Upstream license: MIT"></a>
+    <a href="https://www.tinyfish.ai/"><img src="https://img.shields.io/badge/Powered_by-TinyFish-83f3c2" alt="Powered by TinyFish"></a>
+    <a href="https://github.com/browser-use/vibetest-use"><img src="https://img.shields.io/badge/Built_on-browser--use%2Fvibetest--use-555" alt="Built on browser-use/vibetest-use"></a>
+  </p>
+  <p>
+    <a href="#results-from-the-live-demo">Demo PRs</a> ·
+    <a href="https://ux-guardian-demo.vercel.app">Live demo store</a> ·
+    <a href="pitch/UX-Guardian-pitch.pdf">Pitch deck</a> ·
+    <a href="#how-it-works">How it works</a>
+  </p>
+</div>
 
-CodeRabbit reviews your code. TinyFish reviews your user experience.
+## See it catch a real bug
+
+<table>
+  <tr><th>Preview · blocked</th><th>Production · works</th></tr>
+  <tr>
+    <td><img width="260" src="https://raw.githubusercontent.com/aranish-uk/ux-guardian/ux-guardian-assets/pr-1/action/shots/sign-in-preview-mobile.png" alt="Preview: overlay covers the mobile sign-in button"></td>
+    <td><img width="260" src="https://raw.githubusercontent.com/aranish-uk/ux-guardian/ux-guardian-assets/pr-1/action/shots/sign-in-prod-mobile.png" alt="Production: mobile sign-in button is unobstructed"></td>
+  </tr>
+</table>
+
+**P1 — sign-in button blocked on mobile, caught before merge.** [Read the finding →](https://github.com/aranish-uk/ux-guardian/pull/1#issuecomment-6114005313)
+
+All six TinyFish desktop journeys passed. Playwright's mobile actionability check caught the overlay intercepting taps; the same control worked on production.
+
+## Why
+
+- A correct-looking diff can still leave customers unable to sign in or check out.
+- Scripted E2E tests cover the flows someone anticipated; UI changes demand maintenance.
+- A failing preview alone cannot tell you whether the PR introduced the problem. You need a production baseline.
 
 ## How it works
 
-1. Diff analyzer → selects customer journeys affected by the PR.
-2. TinyFish Fetch pre-check → compares journey entry pages on preview and production.
-3. Playwright desktop/mobile checks vs production → captures deterministic signals and screenshots.
-4. TinyFish Agent customer journeys → tests preview and production at the default desktop viewport; the judge confirms regressions against the production baseline.
-5. Sticky PR comment → repro steps, severity, screenshots and an AI fix suggestion.
-
-## Live demos
-
-- [PR #1: P1 mobile sign-in](https://github.com/aranish-uk/ux-guardian/pull/1)
-- [PR #2: P0 broken cart route](https://github.com/aranish-uk/ux-guardian/pull/2)
-- [PR #3: clean, 0 findings](https://github.com/aranish-uk/ux-guardian/pull/3)
-- [Demo store](https://ux-guardian-demo.vercel.app)
-
-See [the three-minute demo script](docs/DEMO.md) for the walkthrough and architecture.
-
-## Built on open source
-
-A fork of [browser-use/vibetest-use](https://github.com/browser-use/vibetest-use),
-with browser-use replaced by TinyFish for customer journeys. Playwright supplies
-deterministic desktop/mobile checks; GitHub Actions runs the PR workflow.
-The original attribution and [NOTICE](NOTICE) are retained below.
-
-## Honest limitations
-
-- TinyFish Agent has no viewport control. Agents use the default desktop viewport;
-  Playwright covers mobile, including controls blocked by overlays.
-- Agent concurrency is 2 by default, so runs queue rather than all starting together.
-- Returned Agent screenshot URLs omitted `/v1` and failed with HTTP 401. The adapter
-  works around this by correcting the Agent-host path to
-  `/v1/runs/{id}/steps/{step}/screenshot` before downloading. Some step images can
-  still be unavailable; screenshots are evidence, not the regression verdict.
-- Dispatch is manual and screenshots are linked through Actions artifacts.
-  Agent-only failures remain unconfirmed without a retry. Confirmed findings get
-  diff-grounded AI fixes when `LLM_API_KEY` is configured; enrichment is optional,
-  with a 30-second timeout and three total LLM calls per run. The linked demos show the prepared demo results.
-
-See [PRD.md](PRD.md) and [PROGRESS.md](PROGRESS.md) for scope and verified status.
-
-## Development
-
-Python 3.12, uv, Node 24 and pnpm 12.11.2 are required. These commands work on
-Windows and Linux:
-
-```text
-uv sync
-uv run pytest
-uv run ruff check .
-uv run pyright
-uv run playwright install chromium
+```mermaid
+flowchart TD
+    PR[Pull request] --> V[Vercel preview ready]
+    V --> GH[GitHub Action]
+    GH --> D[Diff analyzer: ownership globs + LLM]
+    D --> F[TinyFish Fetch: preview vs production]
+    F --> P[Playwright: desktop + mobile vs production]
+    F --> A[TinyFish Agent: desktop journeys vs production]
+    P --> J[Judge: compare + confirm + severity]
+    A --> J
+    J --> E[AI fix suggestion grounded in the diff]
+    E --> R[Sticky PR comment: repro + screenshots + AI fix]
+    S[TinyFish Search: external documentation] -. Optional grounding .-> E
 ```
 
-On Linux, install Chromium's OS dependencies with
-`uv run playwright install-deps chromium` if needed.
+Checks and Agent journeys run in parallel. The judge compares equivalent signals on the same viewport; screenshots support the verdict rather than decide it.
 
-## Fixture replay
+| TinyFish product | Job in Guardian |
+| --- | --- |
+| **Agent** | Acts as a customer through selected journeys on preview and production; returns structured outcomes and step evidence. Desktop only. |
+| **Fetch** | Free rendered-page pre-check of entry URLs; feeds status and text evidence to the judge before Agent spend. |
+| **Search** | Optionally grounds fix suggestions in external framework docs or known issues. Skipped when the diff makes the cause obvious. |
+
+## Results from the live demo
+
+| PR | Observed result | Run evidence |
+| --- | --- | --- |
+| [#1 · Mobile sign-in](https://github.com/aranish-uk/ux-guardian/pull/1) | **P1:** button covered on mobile; production passes | 6 desktop Agent journeys, **$1.18** TinyFish cost; mobile caught by Playwright |
+| [#2 · Broken cart route](https://github.com/aranish-uk/ux-guardian/pull/2) | **P0:** `/cart` returns 404; production passes | AI patch in the comment, checked with `git apply --check`; no paid Agent runs |
+| [#3 · Harmless copy change](https://github.com/aranish-uk/ux-guardian/pull/3) | **0 findings:** no customer-facing journeys affected | Fully automatic preview trigger; **about 40s** for the workflow (45s recorded), 3.48s analysis/report |
+
+These are individual demo runs, not a benchmark or a five-run reliability claim. The [automatic clean run](https://github.com/aranish-uk/ux-guardian/actions/runs/38178831107) shows the deployment trigger; suggested patches still need developer review. TinyFish cost excludes LLM and CI costs.
+
+## 🚀 Quickstart
+
+**Python 3.12 + [uv](https://docs.astral.sh/uv/) required.** Start with a local fixture replay:
 
 ```text
+git clone https://github.com/aranish-uk/ux-guardian.git
+cd ux-guardian
+uv sync
 uv run ux-guardian run --preview-url https://preview.example.invalid --pr 1 --dry-run
 ```
 
-Writes `artifacts/report.json` and `artifacts/report.md` from the recorded M2
-mobile-overlay comparison. The supplied URL is never contacted. No credentials
-or network are needed; the judge recomputes the finding from saved signals.
-Replay the clean comparison with:
+This writes `artifacts/report.json` and `artifacts/report.md` from recorded evidence. It never contacts the supplied URL and needs no secrets or paid calls.
 
-```text
-uv run ux-guardian run --preview-url https://offline.invalid --pr 1 --dry-run --checks-fixture ux_guardian/fixtures/m2_clean.json
+To bring the integration into your repo:
+
+1. Copy [`.github/workflows/ux-guardian.yml`](.github/workflows/ux-guardian.yml) and [`.ux-guardian/`](.ux-guardian/) into the same locations. The workflow also needs the Guardian Python package and uv project: copy [`ux_guardian/`](ux_guardian/), [`pyproject.toml`](pyproject.toml), [`uv.lock`](uv.lock) and [`NOTICE`](NOTICE) into a compatible repository scaffold. Copying only the YAML is insufficient.
+2. Add repository **Actions secrets**: `TINYFISH_API_KEY`, `LLM_API_KEY`, `TEST_EMAIL`, `TEST_PASSWORD`. GitHub supplies `GITHUB_TOKEN`. Use a seeded test account; keep credentials out of journeys and screenshots.
+3. Connect the demo app to Vercel's GitHub integration with Root Directory `demo-app`. Put the same test-account secrets in Vercel's Preview and Production environments. Successful **Preview** deployment statuses trigger the workflow once it is on the default branch; previews must be reachable by the checks.
+4. Review [`.ux-guardian/config.yaml`](.ux-guardian/config.yaml): production baseline, concurrency, budget and `fail_on`. Define journeys in [`.ux-guardian/journeys.yaml`](.ux-guardian/journeys.yaml), starting with this real sign-in example:
+
+```yaml
+journeys:
+  - id: sign-in
+    name: Sign in with test account
+    entry_path: /login
+    goal: >
+      You are a returning customer. Sign in with email {{TEST_EMAIL}} and password
+      {{TEST_PASSWORD}}. Confirm you land on your account dashboard.
+    success_criteria: ['Dashboard heading containing "Your account" is visible']
+    owns: ['app/(auth)/**', 'app/login/**', 'app/account/**', 'app/api/login/**', 'lib/session.ts', 'components/auth/**', 'middleware.ts']
+    critical_selectors: ['button[type=submit]']
+    viewports: [desktop, mobile]
+    max_steps: 25
 ```
 
-## Live checks (M2)
+**MVP boundary:** live CI currently validates this demo's Vercel preview hostnames. The steps above explain the integration scaffold; using an unrelated app requires a reviewed code adaptation and is outside the shipped demo scope. Fixture replay works anywhere.
+
+For local browser checks, install Chromium with `uv run playwright install chromium`. Manual workflow dispatch defaults paid Agents off; the automatic preview trigger enables desktop Agent pairs with an effective $2 cap. Default config budget is $3. A paid local run via `uv run ux-guardian live journey --journey sign-in --env prod` prints an estimate and asks for confirmation.
+
+<details>
+<summary><strong>How we decide it's a real regression</strong></summary>
+
+| Preview | Production | Verdict |
+| --- | --- | --- |
+| Fail | Pass | Confirmed with a matching hard deterministic signal; otherwise a candidate |
+| Fail | Fail | Pre-existing issue; not attributed to the PR |
+| Pass | Pass | OK |
+| Pass | Fail | Possible improvement |
+
+Hard signals include an origin 4xx/5xx or a critical control that is missing, hidden, disabled or covered. Compare the same control and viewport against production. Transport timeouts, pixel differences and Fetch text warnings alone are inconclusive.
+
+Agent-only candidates require a confirming preview retry at the same or earlier step, or matching deterministic proof with a passing production baseline. The current CI runner defers paid retries, so unsupported Agent-only failures remain unconfirmed and do not fail the check.
+
+| Severity | Short rule | Demo example |
+| --- | --- | --- |
+| **P0** | Origin HTTP error or journey blocked on every viewport | Cart 404 |
+| **P1** | Journey blocked on one viewport or needs a non-obvious workaround | Mobile sign-in overlay |
+| **P2** | Journey completes with degraded UX | Extra step or misleading message |
+
+Rules assign severity first; the LLM may lower it with justification, never raise it. Default `fail_on: [P0]` fails CI only on confirmed P0 findings. See [PRD FR7–FR8](PRD.md) and [judge tests](tests/test_m2.py).
+
+</details>
+
+<details>
+<summary><strong>Compared to…</strong></summary>
+
+This compares typical setups, not universal limits: you can build these features around any testing tool.
+
+| Approach | Diff-aware journeys | Production baseline | Evidence in the PR | AI fix |
+| --- | --- | --- | --- | --- |
+| Plain E2E suites | Usually scripted selection | Needs custom wiring | CI result; richer reports need wiring | Usually manual |
+| AI code reviewers | Code diff | Usually no browser baseline | Code review comments | Code suggestions |
+| Local AI QA swarms | Often page/task driven | Needs custom wiring | Needs CI integration | Tool-dependent |
+| **UX Guardian demo** | Ownership globs + LLM | Preview vs prod | Sticky comment + screenshots | Diff-grounded patch suggestion |
+
+The three linked PRs demonstrate Guardian's row; they do not establish superiority over other tools.
+
+</details>
+
+<details>
+<summary><strong>Honest limitations</strong></summary>
+
+- **No Agent viewport control.** TinyFish Agent runs at its default desktop viewport. All mobile coverage comes from Playwright.
+- **Default concurrency is 2.** Agent runs queue; six journeys do not start simultaneously.
+- **Screenshot URL path workaround.** Returned Agent URLs omitted `/v1` and returned 401. The adapter corrects the Agent-host path before download. Some step images can still be unavailable.
+- **Cost is about $0.016 per Agent step.** Journey length changes spend; LLM and CI costs are separate. Budget caps can leave partial coverage.
+- **One controlled demo, three journeys.** No arbitrary-site rollout, fork PR runs, real payments, security audit or pixel-perfect design review. Every Agent goal includes “Never submit payment, never send messages, never delete data.”
+- **Evidence hosting differs by run.** The showcased PR #1 uses public raw assets; the shipped workflow uploads Actions artifacts. Agent-only retries and the `/ux-guardian rerun` command remain deferred.
+
+Verified implementation status lives in [PROGRESS.md](PROGRESS.md); the scope lives in [PRD.md](PRD.md).
+
+</details>
+
+<details>
+<summary><strong>Roadmap</strong></summary>
+
+- [x] TinyFish desktop Agent adapter with queue, budget guard and screenshot downloads.
+- [x] Playwright desktop/mobile checks, Fetch pre-check and production comparison.
+- [x] Diff selection, sticky PR reports, AI fix suggestions and automatic Vercel preview trigger.
+- [ ] Complete M6: five runs of each demo PR and a recorded demo video.
+- [ ] Confirm Agent-only candidates with paid retries; finish public evidence hosting.
+- [ ] Post-MVP: GitHub App, discovered journeys, persona swarms and production monitoring.
+
+Future items are plans, not shipped features. See [milestones and long-term vision](PRD.md).
+
+</details>
+
+<details>
+<summary><strong>Built with</strong></summary>
+
+[Python 3.12](https://www.python.org/) · [uv](https://docs.astral.sh/uv/) · [TinyFish](https://www.tinyfish.ai/) · [Playwright](https://playwright.dev/python/) · [GitHub Actions](https://github.com/features/actions) · [Vercel](https://vercel.com/)
+
+Pydantic validates contracts; a provider seam isolates the LLM; Pillow + pixelmatch produce visual evidence. The demo store uses Next.js. Vendor SDK imports stay behind the TinyFish adapter; fixtures let the judge and report run offline.
+
+Development checks (Windows and Linux):
 
 ```text
-uv run ux-guardian live checks --env both
-uv run ux-guardian live checks --env both --preview-url https://ux-guardian-demo-fj66mu9nm-aranish-uk.vercel.app --output artifacts/m2-overlay
+uv run pytest
+uv run ruff check .
+uv run pyright
 ```
 
-The first command uses the clean `preview_url` and `production_url` from config.
-The second uses the seeded overlay preview. `--env prod` or `--env preview`
-acquires one environment only and cannot confirm a comparative finding.
-Each run sends one Fetch markdown batch containing the six entry URLs and
-checks all three entry pages on desktop and iPhone 13 mobile, with configured
-dimensions. Set `TINYFISH_API_KEY` in the environment or ignored `.env` for Fetch.
-No Agent runs, credentials in forms, payments, or PR publishing are involved.
-Full-page screenshots, padded pixel diffs and reports stay under `artifacts/`.
-Pixel differences and Fetch text warnings are evidence only.
+For a guided presentation, use [the three-minute demo script](docs/DEMO.md) or [the HTML pitch](pitch/index.html).
 
-A critical control failing only on preview confirms a finding immediately.
-Mobile-only blockers are P1; blockers on both viewports or origin 4xx/5xx are P0.
-Trial clicks detect overlays without clicking or submitting. Console errors are
-considered blocking by acquisition only when a critical control is also blocked;
-console noise and failed requests alone do not confirm a finding. These checks
-cover entry pages and controls, not complete authenticated journeys.
+</details>
 
-```text
-uv run ux-guardian live journey --journey sign-in --env prod
-```
+<details>
+<summary><strong>Credits & upstream license</strong></summary>
 
-This separate M1 command estimates paid Agent steps and asks for confirmation.
-Agents are desktop-only because the API has no viewport control. An estimate
-above the configured budget is rejected.
-The optional `uv run ux-guardian-mcp` exposes fixture-only `start` and `results`
-tools; it cannot launch a paid agent.
+Based on [browser-use/vibetest-use](https://github.com/browser-use/vibetest-use), at commit `fe0b90ac9d6a129ce06f5b53074241a9f205015b`, with original history preserved. Its bounded asyncio swarm and optional MCP interface form the foundation; browser-use was replaced by TinyFish.
 
-## Demo app
+**Upstream declares MIT in its README and has no LICENSE file.** The license badge refers to that upstream declaration. Attribution is retained in [NOTICE](NOTICE).
 
-M3 diff selection is available offline for the three recorded demo diffs:
+Thanks to [TinyFish](https://www.tinyfish.ai/) for customer-journey intelligence and [Playwright](https://playwright.dev/python/) for deterministic browser evidence. README presentation follows patterns collected in [awesome-readme](https://github.com/matiassingers/awesome-readme) and [Best-README-Template](https://github.com/othneildrew/Best-README-Template).
 
-```text
-uv run ux-guardian analyze --base feat/m0 --head demo/mobile-signin-overlay
-uv run ux-guardian analyze --base feat/m0 --head demo/broken-cart-route
-uv run ux-guardian analyze --base feat/m0 --head demo/copy-change
-```
+Reference-only repositories in the PRD supplied ideas; no code was copied from them.
 
-`--diff-file` accepts unified diff text or a GitHub PR files JSON array.
-Ownership globs and shared dependencies are authoritative. Stage 2 adds
-high/medium-confidence journeys; low confidence is advisory and selects no runs.
-The demo uses one global stylesheet and root layout shared by every entry page,
-so changing either selects all three journeys. Patches prefer UI files and use
-a conservative UTF-8 byte bound on the token budget, without tokenizer downloads.
+</details>
 
-Ordinary `analyze` never calls an API. It replays exact-diff recordings and marks
-unrecorded unmatched files as requiring LLM review. `--llm-fixture` accepts a
-saved live output, verified against the normalized diff's SHA-256. Explicit live
-commands use `LLM_API_KEY`, the configured provider/model, and the official SDK:
+---
 
-```text
-uv run ux-guardian live models
-uv run ux-guardian live analyze --base feat/m0 --head demo/copy-change --output artifacts/analysis.json
-```
-
-`live models` makes one free discovery request. `live analyze` makes at most one
-billable structured-output request, with retries disabled, and no TinyFish Agent
-calls. For demo verification it also reviews owned hunks; that review remains
-additive and cannot remove deterministic selections. The full PR orchestration
-is a later milestone.
-
-Run these from `demo-app/`:
-
-```text
-pnpm install --frozen-lockfile
-pnpm build
-pnpm typecheck
-```
-
-From the repository root:
-
-```text
-uv run ux-guardian demo smoke
-uv run ux-guardian demo smoke --unseeded
-uv run ux-guardian demo serve
-```
-
-The smoke command starts the production build on a free loopback port, generates
-an ephemeral seeded account in memory, runs pytest on desktop and mobile, and
-stops the server. It saves screenshots of the account, cart and disabled payment
-step under `artifacts/demo/`. It never captures credential fields, session storage,
-or request bodies. The unseeded test verifies that missing credentials refuse login.
-
-For manual use, provide `TEST_EMAIL` and `TEST_PASSWORD` in the environment or a
-root `.env` (already ignored). No default account or password exists. The CLI loads
-`.env` without overriding existing environment variables and the demo inherits
-those variables. Do not put credentials in tracked files or paste them into logs.
-
-Journeys:
-
-- `/login` → environment-seeded account → `/account`.
-- `/search` → `/products/everyday-tote` → `/cart` (persists in localStorage).
-- `/cart` → `/checkout` → address → payment stub. Place order is disabled;
-  there is no payment endpoint.
-
-The seeded account is a demo-only environment-backed identity; sessions use
-signed expiring HttpOnly cookies. This is not a general-purpose account system.
-
-## Vercel handoff
-
-The hosted demo and clean preview are configured in `.ux-guardian/config.yaml`.
-The seeded regression is on `demo/mobile-signin-overlay`, based on `feat/m0`,
-with its preview URL and verification recorded in [PROGRESS.md](PROGRESS.md).
-The project Root Directory is `demo-app`; a linked branch worktree deploys
-from its repository root with `npx vercel@63.1.2 deploy` (preview target).
-Use Vercel Preview environment secrets; do not promote the regression to production.
-
-## Attribution
-
-Based on [browser-use/vibetest-use](https://github.com/browser-use/vibetest-use)
-at commit `fe0b90ac9d6a129ce06f5b53074241a9f205015b`, with original history
-preserved. Upstream declares MIT in its README and has no LICENSE file.
-See [NOTICE](NOTICE). The bounded asyncio swarm and optional MCP interface are
-adapted; browser-use and its provider-specific LLM dependencies are removed.
-No code was copied from the reference-only repositories listed in the PRD.
-## Manual M4 workflow
-
-After the supervisor merges the workflow to `main`, dispatch it for an existing
-same-repository demo PR and its Vercel preview:
-
-```text
-gh workflow run ux-guardian.yml --ref main -f pr_number=123 -f preview_url="https://ux-guardian-demo-PREVIEW-aranish-uk.vercel.app" -f base_ref=main -f agent_runs=false
-```
-
-Replace the PR number and preview URL with the demo PR's values. Configure Action
-secrets `TINYFISH_API_KEY`, `LLM_API_KEY`, `TEST_EMAIL`, and `TEST_PASSWORD`.
-GitHub supplies `GITHUB_TOKEN`. The trusted `base_ref` supplies Guardian code and
-configuration; PR code is read as diff data through the API and never checked out.
-Fork PRs are rejected before acquisition or publication.
-
-The workflow selects journeys, runs free Fetch and deterministic desktop/mobile
-checks against preview and production, judges and renders the evidence, and
-updates one `<!-- ux-guardian -->` comment. It uploads reports and screenshots
-even when a confirmed P0 makes the pipeline fail, and writes the report to the
-job summary. Screenshot links open the workflow run's artifact download area.
-No assets branch or deployment event is used in this slim M4.
-
-For a local CI invocation, supply `GITHUB_REPOSITORY=owner/repo` and `GITHUB_TOKEN`
-in the environment, then use `uv run ux-guardian ci --pr 123 --preview-url URL`.
-The command prints the sticky comment URL; configured `fail_on` findings exit 1.
-Without an LLM key, unmatched files conservatively select all journeys.
-
-Paid Agent runs require `agent_runs=true` (or CLI `--agent-runs`). That explicit
-opt-in authorizes the displayed estimate. Desktop-only preview/production pairs
-divide a budget of at most $2 into step caps (three pairs: 20 steps each, $1.92).
-Agent-only failures remain unconfirmed because this slim milestone does not run
-paid confirmation retries; deterministic regressions still confirm independently.
+<p align="center">Open source plumbing. TinyFish intelligence.<br><a href="#top">Back to top ↑</a> · <a href="https://github.com/aranish-uk/ux-guardian/issues">Issues</a> · <a href="docs/DEMO.md">Demo walkthrough</a></p>

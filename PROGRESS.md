@@ -436,3 +436,21 @@ workflow resolver JavaScript with a mocked GitHub API, cover automatic/manual
 resolution and skip paths, reproduce a rename in a temporary Git repository, and
 check persisted preview/prod run JSON through mocked TinyFish responses. Existing
 judge, severity and Markdown snapshot tests pass. No live calls or pushes.
+
+## README — demo evidence and onboarding
+
+2026-10-11, `docs/readme`. Replaced the README with a centered pitch hero,
+live PR evidence, architecture, fixture quickstart and collapsed reference sections.
+Rendered pitch slide 1 with Playwright at 1280 × 640; only in-memory layout
+adjustments were used, leaving the pitch source unchanged. Documented the demo-only
+CI hostname restriction and distinguished workflow duration from report duration.
+
+Verified: all 20 relative link/image references and internal anchors resolve;
+all five shields and both remote evidence images return HTTP 200 image responses;
+the hero dimensions are correct; the YAML example exactly matches the sign-in
+journey; README is 218 lines. Public GitHub comments confirm PR #1's six desktop
+journeys and $1.18 cost, PR #2's P0 and suggested patch, and PR #3's automatic
+45-second workflow with zero findings. Offline quickstart replay passed at $0.00.
+`uv run pytest -q`: 212 passed, 11 demo-browser tests skipped;
+`uv run ruff check .` passed; `uv run pyright`: zero errors; `git diff --check` passed.
+No code changes, paid Agent calls, deployments or pushes.
