@@ -7,7 +7,7 @@
   <p>
     <a href="https://github.com/aranish-uk/ux-guardian/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/aranish-uk/ux-guardian/ci.yml?label=Quality" alt="Quality CI status"></a>
     <a href="https://www.python.org/downloads/release/python-3120/"><img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12"></a>
-    <a href="NOTICE"><img src="https://img.shields.io/badge/Upstream_license-MIT-blue" alt="Upstream license: MIT"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue" alt="License-MIT"></a>
     <a href="#tinyfish-features-used"><img src="https://img.shields.io/badge/Powered_by-TinyFish-83f3c2" alt="Powered by TinyFish"></a>
     <a href="https://github.com/browser-use/vibetest-use"><img src="https://img.shields.io/badge/Built_on-browser--use%2Fvibetest--use-555" alt="Built on browser-use/vibetest-use"></a>
   </p>
@@ -121,7 +121,7 @@ This writes `artifacts/report.json` and `artifacts/report.md` from recorded evid
 
 To bring the integration into your repo:
 
-1. Copy [`.github/workflows/ux-guardian.yml`](.github/workflows/ux-guardian.yml) and [`.ux-guardian/`](.ux-guardian/) into the same locations. The workflow also needs the Guardian Python package and uv project: copy [`ux_guardian/`](ux_guardian/), [`pyproject.toml`](pyproject.toml), [`uv.lock`](uv.lock) and [`NOTICE`](NOTICE) into a compatible repository scaffold. Copying only the YAML is insufficient.
+1. Copy [`.github/workflows/ux-guardian.yml`](.github/workflows/ux-guardian.yml) and [`.ux-guardian/`](.ux-guardian/) into the same locations. The workflow also needs the Guardian Python package and uv project: copy [`ux_guardian/`](ux_guardian/), [`pyproject.toml`](pyproject.toml), [`uv.lock`](uv.lock) and [`LICENSE`](LICENSE) into a compatible repository scaffold. Copying only the YAML is insufficient.
 2. Add repository **Actions secrets**: `TINYFISH_API_KEY`, `LLM_API_KEY`, `TEST_EMAIL`, `TEST_PASSWORD`. GitHub supplies `GITHUB_TOKEN`. Use a seeded test account; keep credentials out of journeys and screenshots.
 3. Connect the demo app to Vercel's GitHub integration with Root Directory `demo-app`. Put the same test-account secrets in Vercel's Preview and Production environments. Successful **Preview** deployment statuses trigger the workflow once it is on the default branch; previews must be reachable by the checks.
 4. Review [`.ux-guardian/config.yaml`](.ux-guardian/config.yaml): production baseline, concurrency, budget and `fail_on`. Define journeys in [`.ux-guardian/journeys.yaml`](.ux-guardian/journeys.yaml), starting with this real sign-in example:
