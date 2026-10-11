@@ -1,5 +1,5 @@
-# Local demo only until production is deployed; replace with its verified Vercel URL.
-production_url: http://localhost:3000
+production_url: https://ux-guardian-demo.vercel.app
+# preview_url_example: https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app
 viewports:
   desktop: {width: 1440, height: 900}
   mobile: {width: 390, height: 844}

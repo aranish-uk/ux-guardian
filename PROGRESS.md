@@ -1,6 +1,6 @@
 # Progress
 
-## M0 — local foundation verified; hosted deployment pending
+## M0 — local foundation and hosted deployment verified
 
 2026-10-11. Work is on `feat/m0`, based on upstream vibetest-use commit
 `fe0b90ac9d6a129ce06f5b53074241a9f205015b`; history and attribution are retained.
@@ -46,18 +46,29 @@ post-render secret redaction. A stronger test reproduced it; shared pre-render
 model redaction fixes both report files and MCP output. The full foundation suite,
 Ruff and Pyright pass after that fix. No additional review findings remain.
 
-### Remaining M0 acceptance work
+### Hosted deployment verification — 2026-10-11
 
-- Vercel authentication is absent (`whoami`: loggedIn false); project inspection
-  requests device login. No linked project, production URL or preview URL exists.
-- Complete Vercel login, identify the demo's owning team, link the dedicated demo
-  project and configure TEST_EMAIL/TEST_PASSWORD in both deployment environments.
-- Deploy production and preview, verify both URLs and all three journeys, then
-  replace the local production_url in .ux-guardian/config.yaml.
-- GitHub CLI is unauthenticated and no origin remote is configured; no milestone
-  PR can be opened until the destination repo and GitHub login are available.
+- Vercel CLI 63.1.2 authenticated as `abhinav-ranish`; created and linked
+  `aranish-uk/ux-guardian-demo`, root directory `demo-app`, Next.js preset.
+- Production: https://ux-guardian-demo.vercel.app
+- Preview: https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app
+- Both deployments reached READY. Disabled SSO/Vercel Authentication on this
+  project only; unauthenticated HTTP requests returned 200 without redirects for
+  `/`, `/login`, and `/search` on both URLs, without bypass headers or tokens.
+- Generated random throwaway seeded credentials, stored as Vercel Secrets for
+  Production and Preview and in the git-ignored root `.env`. No values were
+  printed, committed, or captured in screenshots.
+- Headless Playwright Chromium verified all three journeys on both URLs at
+  desktop (1440 x 900) and mobile (390 x 844): seeded sign-in reaches
+  "Your account"; search for tote opens the product and adds it to the cart;
+  checkout reaches Payment with Place order disabled. Payment was not submitted.
+- Fresh `uv run pytest`: 21 passed, 11 local-server browser tests skipped;
+  `uv run ruff check .`: passes; `uv run pyright`: zero errors.
+- No origin remote is configured; no push or milestone PR was attempted. The CLI's
+  automatic attempt to connect the upstream GitHub repository failed; both
+  deployments were made directly through the CLI without a Git connection.
 
-M0 is **not complete** until its hosted production and preview URLs load. The live
+M0 acceptance is complete. The live
 journey command is a cost/confirmation scaffold and explicitly exits without a
 call; the real adapter is M1. Intelligent diff selection, real Fetch/Playwright
 acquisition, GitHub publishing and Search/fix enrichment remain M2–M5.
