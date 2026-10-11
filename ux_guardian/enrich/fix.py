@@ -194,7 +194,7 @@ async def suggest_fix(
     except (ValidationError, ValueError, RuntimeError):
         return FixSuggestion(
             root_cause="The available evidence is insufficient for a grounded fix.",
-            suggestion_markdown="Review the failing step and relevant diff before changing code.",
+            suggestion_markdown="Fix suggestion unavailable",
             patch=None,
             confidence="low",
             sources=[],
@@ -263,19 +263,11 @@ def render_fix(s: FixSuggestion) -> str:
     ]
     if s.patch and s.confidence != "low":
         try:
-            sections = _sections(s.patch)
-            section = sections[0]
-            if (
-                len(sections) == 1
-                and len(section.hunks) == 1
-                and len({p for p in (section.old, section.new) if p is not None}) == 1
-            ):
-                replacement = "\n".join(
-                    row[1:] for row in section.hunks[0] if row.startswith((" ", "+"))
-                )
-                parts.append(_fence(replacement, "suggestion"))
-            else:
-                parts.append(_fence(s.patch, "diff"))
+            _sections(s.patch)
+            parts.append(
+                "<details>\n<summary>Suggested patch</summary>\n\n"
+                + _fence(s.patch, "diff") + "\n\n</details>"
+            )
         except (ValueError, TypeError):
             pass
     sources = list(dict.fromkeys(url for url in s.sources if valid_source(url)))[:2]

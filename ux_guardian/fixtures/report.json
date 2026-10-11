@@ -406,7 +406,7 @@
         "Playwright: Sign in cannot receive pointer events.",
         "Fetch: login entry page renders on both environments."
       ],
-      "fixSuggestion": "Hypothesis (low confidence): inspect the overlay positioning in the diff. No patch is proposed without a real diff.",
+      "fixSuggestion": "**Hypothesis:** Inspect the overlay positioning in the diff.\n\nNo patch is proposed without a real diff.\n\nConfidence: low",
       "replayUrl": ""
     }
   ],

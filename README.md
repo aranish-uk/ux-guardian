@@ -35,9 +35,10 @@ The original attribution and [NOTICE](NOTICE) are retained below.
   works around this by correcting the Agent-host path to
   `/v1/runs/{id}/steps/{step}/screenshot` before downloading. Some step images can
   still be unavailable; screenshots are evidence, not the regression verdict.
-- On this M4 base, dispatch is manual and screenshots are linked through Actions
-  artifacts. Agent-only failures remain unconfirmed without a retry; AI fix
-  enrichment is separate M5 work. The linked demos show the prepared demo results.
+- Dispatch is manual and screenshots are linked through Actions artifacts.
+  Agent-only failures remain unconfirmed without a retry. Confirmed findings get
+  diff-grounded AI fixes when `LLM_API_KEY` is configured; enrichment is optional,
+  with a 30-second timeout and three total LLM calls per run. The linked demos show the prepared demo results.
 
 See [PRD.md](PRD.md) and [PROGRESS.md](PROGRESS.md) for scope and verified status.
 

@@ -27,7 +27,7 @@
 
 **Fix suggestion**
 
-Pending diff-grounded enrichment (M5).
+Fix suggestion unavailable
 
 </details>
 

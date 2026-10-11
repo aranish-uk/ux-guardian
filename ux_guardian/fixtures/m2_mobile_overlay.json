@@ -41,7 +41,7 @@
       "evidence": [
         "mobile: selector:button[type=submit]"
       ],
-      "fixSuggestion": "Pending diff-grounded enrichment (M5).",
+      "fixSuggestion": "Fix suggestion unavailable",
       "replayUrl": ""
     }
   ],

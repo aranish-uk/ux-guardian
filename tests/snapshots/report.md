@@ -33,7 +33,11 @@
 
 **Fix suggestion**
 
-Hypothesis (low confidence): inspect the overlay positioning in the diff. No patch is proposed without a real diff.
+**Hypothesis:** Inspect the overlay positioning in the diff.
+
+No patch is proposed without a real diff.
+
+Confidence: low
 
 </details>
 

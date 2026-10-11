@@ -4,8 +4,11 @@ import subprocess
 from pathlib import Path
 
 import httpx
+import httpx2 as sdk_httpx
 import pytest
+from openai import AsyncOpenAI
 
+from ux_guardian.config import Config
 from ux_guardian.enrich.fix import (
     DiffHunk,
     FixContext,
@@ -15,7 +18,7 @@ from ux_guardian.enrich.fix import (
     suggest_fix,
     validate_patch,
 )
-from ux_guardian.enrich.llm import OpenAiFixClient
+from ux_guardian.llm import OpenAiLlmClient
 from ux_guardian.tinyfish.search import SearchClient, should_search
 
 PATCH = "--- a/app.css\n+++ b/app.css\n@@ -1 +1 @@\n-old\n+new\n"
@@ -63,7 +66,9 @@ class FakeLlm:
 def test_render_single_hunk_snapshot() -> None:
     assert render_fix(suggestion()) == (
         "**Root-cause hypothesis:** Overlay intercepts input.\n\n"
-        "Remove pointer interception.\n\nConfidence: high\n\n```suggestion\nnew\n```"
+        "Remove pointer interception.\n\nConfidence: high\n\n"
+        "<details>\n<summary>Suggested patch</summary>\n\n```diff\n"
+        + PATCH.rstrip("\n") + "\n```\n\n</details>"
     )
 
 
@@ -89,17 +94,16 @@ def test_render_low_and_untrusted_fences() -> None:
 
 
 def test_render_context_and_deletion_replacement() -> None:
-    patch = "--- a/app.css\n+++ b/app.css\n@@ -1,3 +1,2 @@\n before\n-old\n after\n"
-    assert "```suggestion\nbefore\nafter\n```" in render_fix(suggestion(patch))
-    assert "```suggestion\n\n```" in render_fix(
-        suggestion("--- a/app.css\n+++ b/app.css\n@@ -1 +0,0 @@\n-old\n")
-    )
-    assert "```suggestion\nnew\n```" in render_fix(
-        suggestion("--- /dev/null\n+++ b/app.css\n@@ -0,0 +1 @@\n+new\n")
-    )
-    assert "```suggestion\n\n```" in render_fix(
-        suggestion("--- a/app.css\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n")
-    )
+    patches = [
+        "--- a/app.css\n+++ b/app.css\n@@ -1,3 +1,2 @@\n before\n-old\n after\n",
+        "--- a/app.css\n+++ b/app.css\n@@ -1 +0,0 @@\n-old\n",
+        "--- /dev/null\n+++ b/app.css\n@@ -0,0 +1 @@\n+new\n",
+        "--- a/app.css\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+    ]
+    for patch in patches:
+        rendered = render_fix(suggestion(patch))
+        assert "```diff\n" + patch.rstrip("\n") in rendered
+        assert "```suggestion" not in rendered
 
 
 @pytest.mark.parametrize(
@@ -303,42 +307,54 @@ def test_openai_structured_output(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LLM_API_KEY", "llm-secret")
     calls = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: sdk_httpx.Request) -> sdk_httpx.Response:
         calls.append(request)
-        assert request.url == "https://api.openai.com/v1/chat/completions"
-        assert request.headers["Authorization"] == "Bearer llm-secret"
+        assert request.url == "https://api.openai.com/v1/responses"
         payload = json.loads(request.content)
-        schema = payload["response_format"]["json_schema"]
+        assert payload["model"] == "fixture-model"
+        schema = payload["text"]["format"]
         assert schema["strict"] is True
         assert schema["schema"]["additionalProperties"] is False
         assert set(schema["schema"]["required"]) == set(FixSuggestion.model_fields)
         assert "llm-secret" not in json.dumps(payload)
-        return httpx.Response(
-            200, json={"choices": [{"message": {"content": suggestion().model_dump_json()}}]}
-        )
+        return sdk_httpx.Response(200, json={
+            "id": "resp_fixture", "object": "response", "created_at": 1,
+            "status": "completed", "model": "fixture-model", "output": [{
+                "id": "msg_fixture", "type": "message", "role": "assistant",
+                "status": "completed", "content": [{"type": "output_text",
+                "text": suggestion().model_dump_json(), "annotations": []}],
+            }],
+        })
 
-    client = OpenAiFixClient(transport=httpx.MockTransport(handler))
-    result = asyncio.run(suggest_fix(context("llm-secret"), client))
+    async def execute():
+        sdk = AsyncOpenAI(api_key="llm-secret", max_retries=0,
+                          http_client=sdk_httpx.AsyncClient(transport=sdk_httpx.MockTransport(handler)))
+        client = OpenAiLlmClient(Config(llm_model="fixture-model"), sdk,
+                                 output_model=FixSuggestion)
+        try:
+            return await suggest_fix(context("llm-secret"), client)
+        finally:
+            await client.close()
+
+    result = asyncio.run(execute())
     assert result.patch == PATCH
     assert len(calls) == 1
 
 
-@pytest.mark.parametrize(
-    "response",
-    [
-        httpx.Response(401),
-        httpx.Response(200, json={"choices": []}),
-        httpx.Response(200, json={"choices": [{"message": {"refusal": "no"}}]}),
-    ],
-)
-def test_openai_failure_becomes_hypothesis(
-    monkeypatch: pytest.MonkeyPatch, response: httpx.Response
-) -> None:
-    monkeypatch.setenv("LLM_API_KEY", "llm-secret")
-    client = OpenAiFixClient(transport=httpx.MockTransport(lambda request: response))
-    result = asyncio.run(suggest_fix(context(), client))
-    assert result.confidence == "low"
-    assert result.patch is None
+@pytest.mark.parametrize("status", [401, 500])
+def test_openai_failure_becomes_unavailable(status: int) -> None:
+    async def execute():
+        sdk = AsyncOpenAI(api_key="fixture", max_retries=0, http_client=sdk_httpx.AsyncClient(
+            transport=sdk_httpx.MockTransport(lambda request: sdk_httpx.Response(status))))
+        client = OpenAiLlmClient(Config(), sdk, output_model=FixSuggestion)
+        try:
+            return await suggest_fix(context(), client)
+        finally:
+            await client.close()
+
+    result = asyncio.run(execute())
+    assert result.confidence == "low" and result.patch is None
+    assert result.suggestion_markdown == "Fix suggestion unavailable"
 
 
 @pytest.mark.parametrize("confidence", ["high", "medium", "low"])

@@ -3,14 +3,17 @@
 import os
 
 from openai import AsyncOpenAI, OpenAIError
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from ux_guardian.config import Config
 from ux_guardian.diff.analyzer import Predictions
 
 
 class OpenAiLlmClient:
-    def __init__(self, config: Config, client: AsyncOpenAI | None = None) -> None:
+    def __init__(
+        self, config: Config, client: AsyncOpenAI | None = None,
+        *, output_model: type[BaseModel] = Predictions,
+    ) -> None:
         if config.llm_provider != "openai":
             raise ValueError("Unsupported llm_provider; use openai")
         key = os.environ.get("LLM_API_KEY")
@@ -18,6 +21,7 @@ class OpenAiLlmClient:
             raise ValueError("Set LLM_API_KEY in the environment or ignored .env")
         self.client = client or AsyncOpenAI(api_key=key, max_retries=0, timeout=60)
         self.model = config.llm_model
+        self.output_model = output_model
 
     async def list_models(self) -> list[str]:
         try:
@@ -34,7 +38,7 @@ class OpenAiLlmClient:
                 model=self.model,
                 instructions=system,
                 input=prompt,
-                text_format=Predictions,
+                text_format=self.output_model,
                 max_output_tokens=2000,
                 store=False,
             )

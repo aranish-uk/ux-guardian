@@ -395,3 +395,25 @@ skipped**; `uv run ruff check .` passes; `uv run pyright` zero errors;
 `git diff --check` passes. Existing judge truth-table/severity tests and FR10 report
 snapshots remain green. Linux was not executed locally. Local commit only; no
 GitHub credentials, push, publishing or production changes.
+
+## M5 — CI fix suggestions wired
+
+2026-10-11, `feat/m5-wire` branched from `feat/m6-docs` and merged
+`feat/m5-modules`; both existing progress sections were retained.
+
+CI enriches confirmed findings after evidence collection, with observed problems,
+preview console errors/failed requests and ownership/shared journey hunks (all UI
+hunks as fallback). It reuses M3's OpenAiLlmClient and configured model with the
+FixSuggestion schema; the duplicate minimal client was removed. Three total LLM
+calls per run include analysis. Search respects include_search and should_search.
+Each enrichment is bounded to 30 seconds; errors, missing credentials and exhausted
+call allowance render "Fix suggestion unavailable" without blocking publication.
+Patches render as unified diff fences inside collapsible details, never issue-comment
+suggestion fences. Saved JSON retains the rendered suggestion for offline replay.
+
+Verified on Windows: `uv run pytest -q` **202 passed, 11 local-demo tests skipped**;
+`uv run ruff check .` passed; `uv run pyright` zero errors; `git diff --check`
+passed. Mocked CI tests verify publication, configured model, analyzer-inclusive
+call cap, graceful provider errors, saved-JSON reproduction, relevant/fallback hunks,
+30-second cancellation and conditional Search. Updated FR10 snapshots and recorded
+M5 renderings. No live calls, push, deployment or workflow dispatch was performed.

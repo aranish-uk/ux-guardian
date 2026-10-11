@@ -83,8 +83,9 @@ flowchart TD
     T -. Documentation sources .-> E
 ```
 
-The diagram describes the target MVP pipeline. On the M4 base, Agent runs are
-optional, paid confirmation retries and M5 fix/Search enrichment are deferred,
-and screenshots use Actions artifact links. Default Agent concurrency is 2.
+Agent runs are optional and paid confirmation retries remain deferred.
+Confirmed findings now receive diff-grounded fixes with optional Search grounding;
+missing credentials or enrichment failures leave the report available.
+Screenshots use Actions artifact links. Default Agent concurrency is 2.
 Agent screenshots work around the returned URL's missing `/v1` path; unavailable
 images do not determine the verdict. Playwright owns all mobile coverage.

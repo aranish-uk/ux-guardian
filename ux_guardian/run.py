@@ -1,14 +1,19 @@
 """Offline fixture replay and M2 entry-check orchestration; never publishes."""
 
+import asyncio
 import json
 from importlib.resources import files
 from pathlib import Path
 from time import monotonic
+from typing import Literal
 
+from ux_guardian.agents.base import LlmClient
 from ux_guardian.agents.fixture import FixtureAgent
 from ux_guardian.checks.models import CheckResult, FetchResult
 from ux_guardian.checks.playwright import run_checks
 from ux_guardian.config import Config, Environment, Journey, load_config, load_journeys
+from ux_guardian.diff.analyzer import ChangedFile, glob_matches, journey_path, shared_reason
+from ux_guardian.enrich.fix import DiffHunk, FixContext, FixFinding, render_fix, suggest_fix
 from ux_guardian.judge.judge import Verdict, judge, judge_evidence, regression_signals
 from ux_guardian.judge.severity import assign_severity
 from ux_guardian.report.models import Affected, Finding, Report
@@ -16,6 +21,58 @@ from ux_guardian.report.render import render
 from ux_guardian.security import redact, redact_data
 from ux_guardian.swarm import RunRequest, run_pool
 from ux_guardian.tinyfish.fetch import fetch_precheck
+from ux_guardian.tinyfish.search import SearchClient, should_search
+
+
+async def enrich_findings(
+    report: Report, config: Config, journeys: list[Journey],
+    changed: list[ChangedFile], llm: LlmClient | None, *, max_calls: int = 3,
+) -> None:
+    """Best-effort FR9 enrichment of confirmed findings only; never acquire evidence."""
+    search = SearchClient() if config.include_search else None
+    for index, finding in enumerate(report.findings):
+        finding.fix_suggestion = "Fix suggestion unavailable"
+        if llm is None or index >= min(3, max_calls):
+            continue
+        try:
+            journey = next(j for j in journeys if j.id == finding.journey_id)
+            linked = [
+                f for f in changed if shared_reason(f) or any(
+                    glob_matches(journey_path(p), pattern)
+                    for p in f.paths for pattern in journey.owns
+                )
+            ]
+            relevant = linked or [
+                f for f in changed
+                if Path(f.filename).suffix in {".tsx", ".jsx", ".ts", ".js", ".css", ".html"}
+            ]
+            checks = [c for c in report.check_results
+                      if c.env == "preview" and c.journey_id == finding.journey_id]
+            runs = [r for r in report.runs
+                    if r.env == "preview" and r.journey_id == finding.journey_id and not r.passed]
+            blocked = {c.viewport for c in checks if c.hard_signals}
+            viewport: Literal["desktop", "mobile", "all"] = (
+                "all" if len(blocked) != 1 else "mobile" if "mobile" in blocked else "desktop"
+            )
+            ctx = FixContext(
+                finding=FixFinding.model_validate({
+                    "title": finding.title, "severity": finding.severity,
+                    "journey": finding.journey_id, "viewport": viewport,
+                    "failing_step": (runs[0].blocked_at_step or 1) if runs else 1,
+                }),
+                observed_problem="\n".join(r.observed_problem for r in runs)
+                    or "\n".join([finding.title, *finding.evidence]),
+                console_errors=list(dict.fromkeys(e for c in checks for e in c.console_errors)),
+                failed_requests=list(dict.fromkeys(e for c in checks for e in c.failed_requests)),
+                hunks=[DiffHunk(path=p, patch=f.patch) for f in relevant for p in f.paths],
+            )
+            result = await asyncio.wait_for(
+                suggest_fix(ctx, llm, search if should_search(ctx) else None), timeout=30,
+            )
+            finding.fix_suggestion = render_fix(result)
+        except Exception:
+            # Do not leak provider response bodies or let optional intelligence block CI.
+            finding.fix_suggestion = "Fix suggestion unavailable"
 
 
 def replay_report() -> Report:
@@ -26,8 +83,8 @@ def replay_report() -> Report:
 async def replay_pipeline(*, preview_url: str, pr: int, template: Report | None = None) -> Report:
     """Replay acquisition, bounded fan-out, comparison and rendering from fixtures.
 
-    Journey selection and enrichment are already recorded in the fixture; their
-    real implementations belong to M3/M5. No supplied URL is contacted.
+    Journey selection and available enrichment are recorded in the fixture.
+    No supplied URL is contacted and no enrichment API is called.
     """
     saved = template if template is not None else replay_report()
     config = load_config()
@@ -229,7 +286,7 @@ def checks_report(
                     preview_screenshot=first.screenshot_path,
                     prod_screenshot=baseline.screenshot_path,
                     evidence=evidence,
-                    fix_suggestion="Pending diff-grounded enrichment (M5).",
+                    fix_suggestion="Fix suggestion unavailable",
                 )
             )
     return report

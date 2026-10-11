@@ -13,11 +13,12 @@ from ux_guardian.agents.tinyfish import TinyFishAgent
 from ux_guardian.config import Config, Journey, load_config, load_journeys, validate_url
 from ux_guardian.diff.analyzer import Affected as Selection
 from ux_guardian.diff.analyzer import analyze, normalize_diff
+from ux_guardian.enrich.fix import FixSuggestion
 from ux_guardian.github.pr import GitHubPr
 from ux_guardian.judge.judge import Verdict, judge_evidence
 from ux_guardian.llm import OpenAiLlmClient
 from ux_guardian.report.models import Affected, Report
-from ux_guardian.run import checks_report, live_checks, write_report
+from ux_guardian.run import checks_report, enrich_findings, live_checks, write_report
 from ux_guardian.security import redact
 
 
@@ -170,6 +171,23 @@ async def ci_pipeline(
             allowed_urls=[config.preview_url, config.production_url],
         )
         await add_agents(report, config, selected_journeys, agent)
+    fix_llm = None
+    try:
+        if report.findings and os.environ.get("LLM_API_KEY"):
+            fix_llm = OpenAiLlmClient(config, output_model=FixSuggestion)
+        await enrich_findings(
+            report, config, selected_journeys, changed, fix_llm,
+            max_calls=3 - int(analysis.llm_response is not None),
+        )
+    except Exception:
+        for finding in report.findings:
+            finding.fix_suggestion = "Fix suggestion unavailable"
+    finally:
+        if fix_llm:
+            try:
+                await fix_llm.close()
+            except Exception:
+                pass
     report.duration_seconds = round(monotonic() - started, 2)
     write_report(report, output)
     body = (output / "report.md").read_text(encoding="utf-8")
