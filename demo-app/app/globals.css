@@ -1,4 +1,10 @@
 :root { --ink: #243b32; --paper: #fbfaf6; --line: #dbddd5; --muted: #69736b; }
+.signin-submit { position: relative; display: inline-block; }
+.signin-overlay { display: none; }
+@media (width < 640px) {
+  .signin-overlay { display: block; position: absolute; inset: 20px 0 0;
+    z-index: 10; background: rgba(190, 113, 61, .25); }
+}
 * { box-sizing: border-box; }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: Arial, Helvetica, sans-serif; }
 a { color: inherit; text-underline-offset: 5px; }
