@@ -8,7 +8,7 @@
     <a href="https://github.com/aranish-uk/ux-guardian/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/aranish-uk/ux-guardian/ci.yml?label=Quality" alt="Quality CI status"></a>
     <a href="https://www.python.org/downloads/release/python-3120/"><img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12"></a>
     <a href="NOTICE"><img src="https://img.shields.io/badge/Upstream_license-MIT-blue" alt="Upstream license: MIT"></a>
-    <a href="https://www.tinyfish.ai/"><img src="https://img.shields.io/badge/Powered_by-TinyFish-83f3c2" alt="Powered by TinyFish"></a>
+    <a href="#tinyfish-features-used"><img src="https://img.shields.io/badge/Powered_by-TinyFish-83f3c2" alt="Powered by TinyFish"></a>
     <a href="https://github.com/browser-use/vibetest-use"><img src="https://img.shields.io/badge/Built_on-browser--use%2Fvibetest--use-555" alt="Built on browser-use/vibetest-use"></a>
   </p>
   <p>
@@ -63,6 +63,38 @@ Checks and Agent journeys run in parallel. The judge compares equivalent signals
 | **Agent** | Acts as a customer through selected journeys on preview and production; returns structured outcomes and step evidence. Desktop only. |
 | **Fetch** | Free rendered-page pre-check of entry URLs; feeds status and text evidence to the judge before Agent spend. |
 | **Search** | Optionally grounds fix suggestions in external framework docs or known issues. Skipped when the diff makes the cause obvious. |
+
+## TinyFish features used
+
+| Product / integration | Features used | Role | Status |
+| --- | --- | --- | --- |
+| **Web Agent API** ([`ux_guardian/agents/tinyfish.py`](ux_guardian/agents/tinyfish.py)) | `run-async` + polling `/v1/runs/{id}`, structured `output_schema` results, per-step screenshots, client-side step/time caps with `/cancel`, live `streaming_url` | Walks each affected customer journey on preview and production like a real customer. | Live in CI ([PR #1](https://github.com/aranish-uk/ux-guardian/pull/1): 6 runs, $1.18). |
+| **Fetch API** ([`ux_guardian/tinyfish/fetch.py`](ux_guardian/tinyfish/fetch.py)) | One request renders preview and prod entry pages to markdown. | Free pre-check flagging 404s, blank renders and missing key text. | Live on every run. |
+| **Search API** ([`ux_guardian/tinyfish/search.py`](ux_guardian/tinyfish/search.py)) | Rate-limited (30/min) and cached per run. | Grounds AI fix suggestions with documentation when a finding involves an external error string or library. | Integrated in CI; it fires only when that heuristic matches (it did not trigger on the three demo regressions). |
+
+**3 TinyFish products, 4 integration points (Agent run, Agent screenshots/cancel, Fetch, Search).**
+
+Next on the roadmap: TinyFish Monitor for production journey monitoring, Browser Context Profiles + Vault for authenticated journeys.
+
+## Services & stack
+
+| Service | Role |
+| --- | --- |
+| **GitHub Actions** | Runs the pipeline on every PR preview. |
+| **GitHub REST API** | PR files for diff analysis, sticky PR comment, check status that blocks merge on P0, screenshot assets branch. |
+| **Vercel** | Hosts the demo store; Git integration gives every PR a preview and emits the `deployment_status` that triggers the Action. |
+| **OpenAI** (`gpt-6-luna`, configurable) | Diff-to-journey analysis and root-cause/fix-patch generation via structured outputs. |
+| **Playwright + Chromium** | Deterministic desktop and mobile checks, actionability, screenshots. |
+| **pixelmatch / Pillow** | Visual diff evidence. |
+| **browser-use/vibetest-use** | The open-source base (browser-use swapped for TinyFish). |
+| **Python 3.12 + uv, pytest, ruff, pyright** | Runtime and quality gates. |
+
+<details>
+<summary><strong>How this was built</strong></summary>
+
+Codex on an AWS Windows dev box over SSM, orchestrated by Claude Code.
+
+</details>
 
 ## Results from the live demo
 
