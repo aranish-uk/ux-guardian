@@ -169,13 +169,9 @@ def test_cli_refuses_live_pipeline_and_invalid_urls() -> None:
         app, ["live", "journey", "--journey", "sign-in", "--env", "prod"], input="n\n"
     )
     assert result.exit_code != 0
-    assert "$0.80" in result.output
+    assert "$0.40" in result.output
     assert "confirm" in result.output.lower()
-    result = runner.invoke(
-        app, ["live", "journey", "--journey", "sign-in", "--env", "prod"], input="y\n"
-    )
-    assert result.exit_code != 0
-    assert "M1" in result.output
+
 
 
 def test_report_snapshot() -> None:

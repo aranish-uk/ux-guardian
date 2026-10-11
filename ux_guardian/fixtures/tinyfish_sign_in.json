@@ -1,0 +1,159 @@
+{
+  "run_id": "3dc7ff0c-1d92-451c-b6dc-dab71679e2dd",
+  "status": "COMPLETED",
+  "goal": "Navigate to https://ux-guardian-demo.vercel.app/login to complete the goal: Never submit payment, never send messages, never delete data.\nYou are a returning customer. Sign in with email [REDACTED] and password [REDACTED]. Confirm you land on your account dashboard.\n\nStay on this demo origin: https://ux-guardian-demo.vercel.app\nVerify every success criterion before reporting success_criteria_met=true:\nDashboard heading containing \"Your account\" is visible",
+  "created_at": "2026-10-11T20:55:26Z",
+  "started_at": "2026-10-11T20:55:29Z",
+  "finished_at": "2026-10-11T20:56:09Z",
+  "num_of_steps": 7,
+  "result": {
+    "steps": [
+      {
+        "n": 1,
+        "action": "Visited the login page https://ux-guardian-demo.vercel.app/login",
+        "observation": "Displayed email and password login form with a 'Sign in' button"
+      },
+      {
+        "n": 2,
+        "action": "Entered the provided email [REDACTED] into the email field",
+        "observation": "Email field accepted the input successfully"
+      },
+      {
+        "n": 3,
+        "action": "Entered the provided password into the password field",
+        "observation": "Password field accepted the input successfully"
+      },
+      {
+        "n": 4,
+        "action": "Clicked the 'Sign in' button",
+        "observation": "Successfully navigated to the account dashboard at https://ux-guardian-demo.vercel.app/account"
+      },
+      {
+        "n": 5,
+        "action": "Confirmed success criteria",
+        "observation": "Page title is 'Everyday' and a heading containing 'Your account' is visible on the account dashboard"
+      }
+    ],
+    "completed": true,
+    "blocked_at_step": "",
+    "observed_problem": "",
+    "final_page_summary": "Successfully logged into the UX Guardian demo account. The page loaded the account dashboard at https://ux-guardian-demo.vercel.app/account. A heading containing 'Your account' is visible on the page.",
+    "success_criteria_met": true
+  },
+  "output_schema": {
+    "type": "object",
+    "required": [
+      "completed",
+      "steps",
+      "success_criteria_met"
+    ],
+    "properties": {
+      "steps": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "n": {
+              "type": "integer"
+            },
+            "action": {
+              "type": "string"
+            },
+            "observation": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "completed": {
+        "type": "boolean"
+      },
+      "blocked_at_step": {
+        "type": "string"
+      },
+      "observed_problem": {
+        "type": "string"
+      },
+      "final_page_summary": {
+        "type": "string"
+      },
+      "success_criteria_met": {
+        "type": "boolean"
+      }
+    }
+  },
+  "profile_attached": false,
+  "profile_id": null,
+  "error": null,
+  "streaming_url": "https://ip-18-144-232-217.tetra-data.production.tinyfish.io/tf-25d06587-e727-4335-b87d-9b830c0ab442/stream/0",
+  "browser_config": {
+    "proxy_enabled": false,
+    "proxy_country_code": null
+  },
+  "video_url": null,
+  "steps": [
+    {
+      "id": "dbb400ee-2a25-418e-ad1f-e00a9d176ca7",
+      "timestamp": "2026-10-11T20:55:30Z",
+      "status": "RUNNING",
+      "action": "Visit the login page to sign in",
+      "screenshot": "https://agent.tinyfish.ai/runs/3dc7ff0c-1d92-451c-b6dc-dab71679e2dd/steps/dbb400ee-2a25-418e-ad1f-e00a9d176ca7/screenshot",
+      "html": null,
+      "duration": "1.1s"
+    },
+    {
+      "id": "1ca31070-f89b-4f33-95bf-f0ceccf199ce",
+      "timestamp": "2026-10-11T20:55:34Z",
+      "status": "RUNNING",
+      "action": "Input email for login",
+      "screenshot": "https://agent.tinyfish.ai/runs/3dc7ff0c-1d92-451c-b6dc-dab71679e2dd/steps/1ca31070-f89b-4f33-95bf-f0ceccf199ce/screenshot",
+      "html": null,
+      "duration": "1.0s"
+    },
+    {
+      "id": "216a5f18-a6f2-49fe-9e76-d66b59af86c6",
+      "timestamp": "2026-10-11T20:55:37Z",
+      "status": "RUNNING",
+      "action": "Input password for login",
+      "screenshot": "https://agent.tinyfish.ai/runs/3dc7ff0c-1d92-451c-b6dc-dab71679e2dd/steps/216a5f18-a6f2-49fe-9e76-d66b59af86c6/screenshot",
+      "html": null,
+      "duration": "0.9s"
+    },
+    {
+      "id": "4e92c089-ec67-4847-a8f5-2a57eff553af",
+      "timestamp": "2026-10-11T20:55:40Z",
+      "status": "RUNNING",
+      "action": "Click sign in button",
+      "screenshot": "https://agent.tinyfish.ai/runs/3dc7ff0c-1d92-451c-b6dc-dab71679e2dd/steps/4e92c089-ec67-4847-a8f5-2a57eff553af/screenshot",
+      "html": null,
+      "duration": "1.9s"
+    },
+    {
+      "id": "88313faf-23d8-4d53-b977-9d3e3881f7e6",
+      "timestamp": "2026-10-11T20:55:43Z",
+      "status": "RUNNING",
+      "action": "Check if dashboard with \"Your account\" is visible",
+      "screenshot": "https://agent.tinyfish.ai/runs/3dc7ff0c-1d92-451c-b6dc-dab71679e2dd/steps/88313faf-23d8-4d53-b977-9d3e3881f7e6/screenshot",
+      "html": null,
+      "duration": "1.4s"
+    },
+    {
+      "id": "112392d0-7b5c-4553-a4af-56aab5201be1",
+      "timestamp": "2026-10-11T20:56:06Z",
+      "status": "RUNNING",
+      "action": "Finish task with successful dashboard confirmation",
+      "screenshot": "https://agent.tinyfish.ai/runs/3dc7ff0c-1d92-451c-b6dc-dab71679e2dd/steps/112392d0-7b5c-4553-a4af-56aab5201be1/screenshot",
+      "html": null,
+      "duration": "0.0s"
+    },
+    {
+      "id": "de0f3219-97b7-4c26-b649-32d1d2406ede",
+      "timestamp": "2026-10-11T20:56:08Z",
+      "status": "COMPLETED",
+      "action": "Task completed",
+      "screenshot": null,
+      "html": null,
+      "duration": null
+    }
+  ]
+}
