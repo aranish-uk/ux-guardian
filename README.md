@@ -232,19 +232,6 @@ For a guided presentation, use [the three-minute demo script](docs/DEMO.md) or [
 
 </details>
 
-<details>
-<summary><strong>Credits & upstream license</strong></summary>
-
-Based on [browser-use/vibetest-use](https://github.com/browser-use/vibetest-use), at commit `fe0b90ac9d6a129ce06f5b53074241a9f205015b`, with original history preserved. Its bounded asyncio swarm and optional MCP interface form the foundation; browser-use was replaced by TinyFish.
-
-**Upstream declares MIT in its README and has no LICENSE file.** The license badge refers to that upstream declaration. Attribution is retained in [NOTICE](NOTICE).
-
-Thanks to [TinyFish](https://www.tinyfish.ai/) for customer-journey intelligence and [Playwright](https://playwright.dev/python/) for deterministic browser evidence. README presentation follows patterns collected in [awesome-readme](https://github.com/matiassingers/awesome-readme) and [Best-README-Template](https://github.com/othneildrew/Best-README-Template).
-
-Reference-only repositories in the PRD supplied ideas; no code was copied from them.
-
-</details>
-
 ---
 
 <p align="center">Open source plumbing. TinyFish intelligence.<br><a href="#top">Back to top ↑</a> · <a href="https://github.com/aranish-uk/ux-guardian/issues">Issues</a> · <a href="docs/DEMO.md">Demo walkthrough</a></p>
