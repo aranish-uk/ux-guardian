@@ -1,95 +1,109 @@
-# Vibetest Use
+# TinyFish UX Guardian
 
-Automated QA testing using Browser-Use agents. 
+CodeRabbit reviews your code. TinyFish reviews your user experience.
 
+M0 establishes the Python foundation and a three-journey demo storefront.
+Live TinyFish integration begins in M1; signal acquisition, diff intelligence,
+GitHub reporting and enrichment follow in M2–M5. See [PRD.md](PRD.md) and
+[PROGRESS.md](PROGRESS.md) for scope and verified status.
 
-https://github.com/user-attachments/assets/9558d051-78bc-45fd-8694-9ac80eaf9494
+## Development
 
+Python 3.12, uv, Node 24 and pnpm 12.11.2 are required. These commands work on
+Windows and Linux:
 
-An MCP server that launches multiple Browser-Use agents to test a vibe-coded website for UI bugs, broken links, accessibility issues, and other technical problems.
-
-Perfect for testing both live websites and localhost development sites. 
-
-Vibecode and vibetest until your website works.
-
-## Quick Start
-
-```bash
-# Install dependencies
-uv venv
-source .venv/bin/activate
-uv pip install -e .
-
-# Install the browser
-playwright install chromium --with-deps --no-shell
+```text
+uv sync
+uv run pytest
+uv run ruff check .
+uv run pyright
+uv run playwright install chromium
 ```
 
-### 1) Claude Code
+On Linux, install Chromium's OS dependencies with
+`uv run playwright install-deps chromium` if needed.
 
-```bash
-# Add MCP server via CLI
-claude mcp add vibetest /full/path/to/vibetest-use/.venv/bin/vibetest-mcp -e GOOGLE_API_KEY="your_api_key"
+## Fixture replay
 
-# Test in Claude Code
-> claude
-
-> /mcp 
-  ⎿  MCP Server Status
-
-     • vibetest: connected
+```text
+uv run ux-guardian run --preview-url https://preview.example.invalid --pr 1 --dry-run
 ```
 
-### 2) Cursor (manually)
+Writes `artifacts/report.json` and `artifacts/report.md`. Evidence is a **synthetic
+contract fixture**, not a live recording. The supplied URL is never contacted;
+no SDK is instantiated, no credentials are needed and no TinyFish cost is incurred.
+M0 does not yet acquire evidence or publish a PR comment. The fixture report
+is reproducible offline and its markdown layout has a snapshot test.
 
-1. **Install via MCP Settings UI:**
-   - Open Cursor Settings
-   - Click on "MCP" in the left sidebar  
-   - Click "Add Server" or the "+" button
-   - Manually edit config:
-  
-```json
-{
-  "mcpServers": {
-    "vibetest": {
-      "command": "/full/path/to/vibetest-use/.venv/bin/vibetest-mcp",
-      "env": {
-        "GOOGLE_API_KEY": "your_api_key"
-      }
-    }
-  }
-}
-
+```text
+uv run ux-guardian live journey --journey sign-in --env prod
 ```
 
-### Basic Prompts
+This reserved paid-run command shows the maximum step-cost estimate and asks
+for confirmation. In M0 it then exits explicitly without a live call. The working
+TinyFish adapter is M1. An estimate above the configured budget is rejected.
+The optional `uv run ux-guardian-mcp` exposes fixture-only `start` and `results`
+tools; it cannot launch a paid agent.
+
+## Demo app
+
+Run these from `demo-app/`:
+
+```text
+pnpm install --frozen-lockfile
+pnpm build
+pnpm typecheck
 ```
-> Vibetest my website with 5 agents: browser-use.com
-> Run vibetest on localhost:3000
-> Run a headless vibetest on localhost:8080 with 10 agents
+
+From the repository root:
+
+```text
+uv run ux-guardian demo smoke
+uv run ux-guardian demo smoke --unseeded
+uv run ux-guardian demo serve
 ```
 
-### Parameters You Can Specify
-- **URL**: Any website (`https://example.com`, `localhost:3000`, `http://dev.mysite.com`)
-- **Number of agents**: `3` (default), `5 agents`, `2 agents` - more agents = more thorough testing
-- **Headless mode**: `non-headless` (default) or `headless`
+The smoke command starts the production build on a free loopback port, generates
+an ephemeral seeded account in memory, runs pytest on desktop and mobile, and
+stops the server. It saves screenshots of the account, cart and disabled payment
+step under `artifacts/demo/`. It never captures credential fields, session storage,
+or request bodies. The unseeded test verifies that missing credentials refuse login.
 
-## Requirements
+For manual use, provide `TEST_EMAIL` and `TEST_PASSWORD` in the environment or a
+root `.env` (already ignored). No default account or password exists. The CLI loads
+`.env` without overriding existing environment variables and the demo inherits
+those variables. Do not put credentials in tracked files or paste them into logs.
 
-- Python 3.11+
-- Google API key ([get one](https://developers.google.com/maps/api-security-best-practices)) (we support gemini-2.0-flash)
-- Cursor/Claude with MCP support
+Journeys:
 
-## Full Demo
+- `/login` → environment-seeded account → `/account`.
+- `/search` → `/products/everyday-tote` → `/cart` (persists in localStorage).
+- `/cart` → `/checkout` → address → payment stub. Place order is disabled;
+  there is no payment endpoint.
 
+The seeded account is a demo-only environment-backed identity; sessions use
+signed expiring HttpOnly cookies. This is not a general-purpose account system.
 
-https://github.com/user-attachments/assets/6450b5b7-10e5-4019-82a4-6d726dbfbe1f
+## Vercel handoff
 
+No Vercel token or saved login was available during initial implementation.
+Authenticate locally with `pnpm dlx vercel@63.1.2 login`, then link a dedicated
+`ux-guardian-demo` project from `demo-app/`. For Git integration, select `demo-app`
+as the project's Root Directory. Configure `TEST_EMAIL` and `TEST_PASSWORD` as
+Vercel secrets for both Preview and Production; keep them out of build arguments.
 
+Inspect the linked project before deploying. Deploy the verified source once as
+preview and once as production. Preview must be publicly reachable by TinyFish:
+PRD section 13 permits disabling protection on this demo project. Set the verified
+production URL in `.ux-guardian/config.yaml` and record both real URLs in
+`PROGRESS.md`. The current localhost URL is explicitly a local placeholder.
+M0 remains incomplete until both hosted URLs load.
 
-## License
+## Attribution
 
-MIT
-
----
-
-Powered by [Browser Use](https://github.com/browser-use/browser-use) 
+Based on [browser-use/vibetest-use](https://github.com/browser-use/vibetest-use)
+at commit `fe0b90ac9d6a129ce06f5b53074241a9f205015b`, with original history
+preserved. Upstream declares MIT in its README and has no LICENSE file.
+See [NOTICE](NOTICE). The bounded asyncio swarm and optional MCP interface are
+adapted; browser-use and its provider-specific LLM dependencies are removed.
+No code was copied from the reference-only repositories listed in the PRD.

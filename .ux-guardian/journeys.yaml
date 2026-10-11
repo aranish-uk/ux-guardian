@@ -1,0 +1,35 @@
+journeys:
+  - id: sign-in
+    name: Sign in with test account
+    entry_path: /login
+    goal: >
+      You are a returning customer. Sign in with email {{TEST_EMAIL}} and password
+      {{TEST_PASSWORD}}. Confirm you land on your account dashboard.
+    success_criteria: ['Dashboard heading containing "Your account" is visible']
+    owns: ['app/(auth)/**', 'app/login/**', 'app/account/**', 'app/api/login/**', 'lib/session.ts', 'components/auth/**', 'middleware.ts']
+    critical_selectors: ['button[type=submit]']
+    viewports: [desktop, mobile]
+    max_steps: 25
+  - id: search-cart
+    name: Search → product → add to cart
+    entry_path: /search
+    goal: >
+      Search for the everyday tote, open its product page, add one to your cart,
+      and confirm the cart contains the tote.
+    success_criteria: ['Cart contains Everyday tote']
+    owns: ['app/search/**', 'app/products/**', 'app/cart/**', 'components/storefront.tsx']
+    critical_selectors: ['input[type=search]']
+    viewports: [desktop, mobile]
+    max_steps: 25
+  - id: checkout
+    name: Checkout to payment step
+    entry_path: /cart
+    goal: >
+      Add an everyday tote if the cart is empty. Proceed to checkout, enter a
+      fictional shipping address, and stop at the stubbed payment step.
+      Never submit payment.
+    success_criteria: ['Payment heading is visible and Place order is disabled']
+    owns: ['app/cart/**', 'app/checkout/**', 'components/checkout.tsx']
+    critical_selectors: ['a[href="/checkout"]']
+    viewports: [desktop, mobile]
+    max_steps: 25

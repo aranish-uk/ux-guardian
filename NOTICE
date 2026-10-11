@@ -1,0 +1,9 @@
+TinyFish UX Guardian is based on browser-use/vibetest-use.
+Upstream: https://github.com/browser-use/vibetest-use
+Base commit: fe0b90ac9d6a129ce06f5b53074241a9f205015b
+Upstream authors: browser-use/vibetest-use contributors.
+Upstream README declares MIT; the upstream repository has no LICENSE file.
+The original history is preserved. The bounded asyncio swarm and optional
+FastMCP start/results interface are adapted from that project. The browser-use
+implementation and provider-specific LLM code have been removed.
+Reference repositories in PRD section 9 are ideas only; no code is copied.

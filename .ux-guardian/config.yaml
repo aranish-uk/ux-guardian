@@ -1,0 +1,13 @@
+# Local demo only until production is deployed; replace with its verified Vercel URL.
+production_url: http://localhost:3000
+viewports:
+  desktop: {width: 1440, height: 900}
+  mobile: {width: 390, height: 844}
+concurrency: 2
+budget_usd_per_run: 3
+fail_on: [P0]
+llm_provider: openai
+llm_model: configured-in-M3
+confirm_retries: 1
+include_fetch_precheck: true
+include_search: true

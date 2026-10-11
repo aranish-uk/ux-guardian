@@ -1,28 +1,22 @@
-# Build artifacts
-
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.worktrees/
+upstream-vibetest/
+artifacts/
+node_modules/
+.next/
+.vercel/
+*.tsbuildinfo
 build/
 dist/
-__pycache__/
-*.pyc
-*.pyo
-
-# QA test artifacts
-qa_artifacts/
-
-# Environment files
-.env
-.venv/
-venv/
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS files
+.coverage
+*.log
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log 

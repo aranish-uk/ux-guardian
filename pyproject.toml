@@ -1,20 +1,53 @@
 [project]
-name = "vibetest"
+name = "ux-guardian"
 version = "0.1.0"
-description = "Browser-agent QA swarm with MCP interface for testing AI-generated websites"
-requires-python = ">=3.11"
+description = "TinyFish-powered comparative UX regression guardian"
+requires-python = ">=3.12"
 dependencies = [
-  "mcp[cli]>=1.0.0",
-  "browser-use",
-  "playwright",
-  "langchain_google_genai",
-  "langchain_core",
-  "pydantic",
-  "screeninfo",
+  "mcp[cli]>=1.0.0,<2",
+  "tinyfish",
+  "playwright>=1.55",
+  "pydantic>=2,<3",
+  "pyyaml>=6",
+  "typer>=0.16",
+  "httpx>=0.28",
+  "Pillow>=11",
+  "pixelmatch>=0.3",
+  "python-dotenv>=1.1",
 ]
 
 [tool.setuptools.packages.find]
-include = ["vibetest*"]
+include = ["ux_guardian*"]
+
+[tool.setuptools.package-data]
+"ux_guardian.fixtures" = ["*.json"]
 
 [project.scripts]
-vibetest-mcp = "vibetest.mcp_server:run"
+ux-guardian = "ux_guardian.cli:app"
+ux-guardian-mcp = "ux_guardian.mcp_server:run"
+
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.12", "pyright>=1.1.400", "types-PyYAML>=6"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["demo: browser tests against the locally controlled demo app"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = ["upstream-vibetest", "demo-app/node_modules", "demo-app/.next"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+include = ["ux_guardian", "tests"]
+exclude = ["upstream-vibetest", "demo-app", ".venv"]

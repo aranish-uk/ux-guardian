@@ -1,0 +1,422 @@
+{
+  "pr": 1,
+  "sha": "fixture-only",
+  "previewUrl": "https://preview.example.invalid",
+  "prodUrl": "https://production.example.invalid",
+  "durationSeconds": 0,
+  "fixture": true,
+  "affected": [
+    {
+      "journeyId": "sign-in",
+      "name": "Sign in with test account",
+      "reason": "M0 contract fixture; not selected from a real diff.",
+      "source": "fixture"
+    },
+    {
+      "journeyId": "search-cart",
+      "name": "Search → product → add to cart",
+      "reason": "M0 contract fixture; not selected from a real diff.",
+      "source": "fixture"
+    },
+    {
+      "journeyId": "checkout",
+      "name": "Checkout to payment step",
+      "reason": "M0 contract fixture; not selected from a real diff.",
+      "source": "fixture"
+    }
+  ],
+  "runs": [
+    {
+      "runId": "fixture-sign-in-desktop-preview",
+      "env": "preview",
+      "journeyId": "sign-in",
+      "viewport": "desktop",
+      "status": "COMPLETED",
+      "completed": true,
+      "successCriteriaMet": true,
+      "blockedAtStep": null,
+      "observedProblem": "",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Success criteria met.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0
+    },
+    {
+      "runId": "fixture-sign-in-desktop-prod",
+      "env": "prod",
+      "journeyId": "sign-in",
+      "viewport": "desktop",
+      "status": "COMPLETED",
+      "completed": true,
+      "successCriteriaMet": true,
+      "blockedAtStep": null,
+      "observedProblem": "",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Success criteria met.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0
+    },
+    {
+      "runId": "fixture-sign-in-mobile-preview",
+      "env": "preview",
+      "journeyId": "sign-in",
+      "viewport": "mobile",
+      "status": "COMPLETED",
+      "completed": false,
+      "successCriteriaMet": false,
+      "blockedAtStep": 2,
+      "observedProblem": "An overlay prevents clicking Sign in.",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Sign in is covered.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0
+    },
+    {
+      "runId": "fixture-sign-in-mobile-prod",
+      "env": "prod",
+      "journeyId": "sign-in",
+      "viewport": "mobile",
+      "status": "COMPLETED",
+      "completed": true,
+      "successCriteriaMet": true,
+      "blockedAtStep": null,
+      "observedProblem": "",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Success criteria met.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0
+    },
+    {
+      "runId": "fixture-search-cart-desktop-preview",
+      "env": "preview",
+      "journeyId": "search-cart",
+      "viewport": "desktop",
+      "status": "COMPLETED",
+      "completed": true,
+      "successCriteriaMet": true,
+      "blockedAtStep": null,
+      "observedProblem": "",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Success criteria met.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0
+    },
+    {
+      "runId": "fixture-search-cart-desktop-prod",
+      "env": "prod",
+      "journeyId": "search-cart",
+      "viewport": "desktop",
+      "status": "COMPLETED",
+      "completed": true,
+      "successCriteriaMet": true,
+      "blockedAtStep": null,
+      "observedProblem": "",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Success criteria met.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0
+    },
+    {
+      "runId": "fixture-search-cart-mobile-preview",
+      "env": "preview",
+      "journeyId": "search-cart",
+      "viewport": "mobile",
+      "status": "COMPLETED",
+      "completed": true,
+      "successCriteriaMet": true,
+      "blockedAtStep": null,
+      "observedProblem": "",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Success criteria met.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0
+    },
+    {
+      "runId": "fixture-search-cart-mobile-prod",
+      "env": "prod",
+      "journeyId": "search-cart",
+      "viewport": "mobile",
+      "status": "COMPLETED",
+      "completed": true,
+      "successCriteriaMet": true,
+      "blockedAtStep": null,
+      "observedProblem": "",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Success criteria met.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0
+    },
+    {
+      "runId": "fixture-checkout-desktop-preview",
+      "env": "preview",
+      "journeyId": "checkout",
+      "viewport": "desktop",
+      "status": "COMPLETED",
+      "completed": true,
+      "successCriteriaMet": true,
+      "blockedAtStep": null,
+      "observedProblem": "",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Success criteria met.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0
+    },
+    {
+      "runId": "fixture-checkout-desktop-prod",
+      "env": "prod",
+      "journeyId": "checkout",
+      "viewport": "desktop",
+      "status": "COMPLETED",
+      "completed": true,
+      "successCriteriaMet": true,
+      "blockedAtStep": null,
+      "observedProblem": "",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Success criteria met.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0
+    },
+    {
+      "runId": "fixture-checkout-mobile-preview",
+      "env": "preview",
+      "journeyId": "checkout",
+      "viewport": "mobile",
+      "status": "COMPLETED",
+      "completed": true,
+      "successCriteriaMet": true,
+      "blockedAtStep": null,
+      "observedProblem": "",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Success criteria met.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0
+    },
+    {
+      "runId": "fixture-checkout-mobile-prod",
+      "env": "prod",
+      "journeyId": "checkout",
+      "viewport": "mobile",
+      "status": "COMPLETED",
+      "completed": true,
+      "successCriteriaMet": true,
+      "blockedAtStep": null,
+      "observedProblem": "",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Success criteria met.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0
+    },
+    {
+      "runId": "fixture-sign-in-mobile-preview-retry",
+      "env": "preview",
+      "journeyId": "sign-in",
+      "viewport": "mobile",
+      "status": "COMPLETED",
+      "completed": false,
+      "successCriteriaMet": false,
+      "blockedAtStep": 2,
+      "observedProblem": "An overlay prevents clicking Sign in.",
+      "steps": [
+        {
+          "n": 1,
+          "action": "Open journey entry page.",
+          "observation": "Entry page rendered.",
+          "screenshotPath": ""
+        },
+        {
+          "n": 2,
+          "action": "Attempt the journey.",
+          "observation": "Sign in is covered.",
+          "screenshotPath": ""
+        }
+      ],
+      "replayUrl": "",
+      "costUsd": 0,
+      "attempt": 2
+    }
+  ],
+  "checks": [
+    {
+      "journeyId": "sign-in",
+      "env": "preview",
+      "viewport": "mobile",
+      "signal": "Playwright: Sign in cannot receive pointer events.",
+      "agrees": false
+    }
+  ],
+  "findings": [
+    {
+      "journeyId": "sign-in",
+      "severity": "P1",
+      "title": "Mobile sign-in is blocked by an overlay",
+      "reproSteps": [
+        "Open /login at 390 × 844.",
+        "Fill the seeded test-account fields.",
+        "Click Sign in; the overlay intercepts the click."
+      ],
+      "previewScreenshot": "",
+      "prodScreenshot": "",
+      "evidence": [
+        "Preview fails; production passes on mobile.",
+        "Synthetic retry fails again at step 2.",
+        "Playwright: Sign in cannot receive pointer events.",
+        "Fetch: login entry page renders on both environments."
+      ],
+      "fixSuggestion": "Hypothesis (low confidence): inspect the overlay positioning in the diff. No patch is proposed without a real diff.",
+      "replayUrl": ""
+    }
+  ],
+  "preexisting": [],
+  "flaky": [],
+  "improved": [],
+  "cost": {
+    "agentUsd": 0,
+    "fetchUsd": 0,
+    "searchUsd": 0,
+    "totalUsd": 0
+  }
+}
