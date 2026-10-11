@@ -12,12 +12,22 @@
     <a href="https://github.com/browser-use/vibetest-use"><img src="https://img.shields.io/badge/Built_on-browser--use%2Fvibetest--use-555" alt="Built on browser-use/vibetest-use"></a>
   </p>
   <p>
-    <a href="#results-from-the-live-demo">Demo PRs</a> ·
+    <a href="#-here-is-the-demo">Demo PRs</a> ·
     <a href="https://ux-guardian-demo.vercel.app">Live demo store</a> ·
     <a href="pitch/UX-Guardian-pitch.pdf">Pitch deck</a> ·
     <a href="#how-it-works">How it works</a>
   </p>
 </div>
+
+## 🎬 Here is the demo
+
+| Demo | What it shows | Link |
+| --- | --- | --- |
+| **Demo 1 · UX bug (P1)** | A promo overlay blocks sign-in on mobile. TinyFish agents pass on desktop; Playwright catches the mobile-only bug. | [PR #1 →](https://github.com/aranish-uk/ux-guardian/pull/1) |
+| **Demo 2 · UX bug (P0)** | The cart was renamed to `/bag`, so cart links 404 on desktop and mobile. The PR check blocks the merge. | [PR #2 →](https://github.com/aranish-uk/ux-guardian/pull/2) |
+| **Demo 3 · No UX impact** | A copy-only change. No journeys are affected, so TinyFish agents are skipped and nothing noisy is posted. | [PR #3 →](https://github.com/aranish-uk/ux-guardian/pull/3) |
+
+Live demo store: https://ux-guardian-demo.vercel.app
 
 ## See it catch a real bug
 

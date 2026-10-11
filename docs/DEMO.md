@@ -1,5 +1,15 @@
 # TinyFish UX Guardian: three-minute demo
 
+## Here is the demo
+
+| Demo | What it shows | Link |
+| --- | --- | --- |
+| **Demo 1 · UX bug (P1)** | A promo overlay blocks sign-in on mobile. TinyFish agents pass on desktop; Playwright catches the mobile-only bug. | [PR #1 →](https://github.com/aranish-uk/ux-guardian/pull/1) |
+| **Demo 2 · UX bug (P0)** | The cart was renamed to `/bag`, so cart links 404 on desktop and mobile. The PR check blocks the merge. | [PR #2 →](https://github.com/aranish-uk/ux-guardian/pull/2) |
+| **Demo 3 · No UX impact** | A copy-only change. No journeys are affected, so TinyFish agents are skipped and nothing noisy is posted. | [PR #3 →](https://github.com/aranish-uk/ux-guardian/pull/3) |
+
+Live demo store: https://ux-guardian-demo.vercel.app
+
 Before presenting, open the three PRs and their existing Guardian comments, the
 [demo store](https://ux-guardian-demo.vercel.app), and the screenshot artifacts.
 Use the saved results for the timed walkthrough. This script documents a later
