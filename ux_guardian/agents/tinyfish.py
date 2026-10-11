@@ -235,7 +235,7 @@ class TinyFishAgent:
         run = redact_model(
             AgentRun(
                 run_id=run_id,
-                env=self.env,
+                env="prod" if base_url == self.config.production_url else "preview",
                 journey_id=journey.id,
                 viewport=viewport,
                 status="CANCELLED" if cancelled else data["status"],

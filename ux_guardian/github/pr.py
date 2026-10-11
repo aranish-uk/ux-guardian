@@ -1,6 +1,8 @@
 """Small GitHub REST client; never checks out or executes PR code."""
 
 import re
+import subprocess
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -49,8 +51,38 @@ class GitHubPr:
             raise ValueError("Fork PRs are not supported; no tests or comment posted")
         return data
 
-    async def changed_files(self, pr: int) -> list[dict[str, Any]]:
-        return await self.pages(f"/pulls/{pr}/files")
+    async def changed_files(
+        self, pr: int, *, base_sha: str | None = None, head_sha: str | None = None,
+        repo_dir: Path = Path("."),
+    ) -> list[dict[str, Any]]:
+        rows = await self.pages(f"/pulls/{pr}/files")
+        missing = [row for row in rows if row.get("patch") is None]
+        if missing:
+            if base_sha is None or head_sha is None:
+                raise ValueError("PR base and head SHAs are required to recover missing patches")
+            if not all(re.fullmatch(r"[0-9a-fA-F]{40,64}", sha)
+                       for sha in (base_sha, head_sha)):
+                raise ValueError("Invalid PR commit SHA")
+            for sha in (base_sha, head_sha):
+                exists = subprocess.run(
+                    ["git", "cat-file", "-e", f"{sha}^{{commit}}"], cwd=repo_dir,
+                    capture_output=True,
+                )
+                if exists.returncode:
+                    subprocess.run(
+                        ["git", "fetch", "--no-tags", "origin", sha], cwd=repo_dir,
+                        check=True, capture_output=True,
+                    )
+            for row in missing:
+                paths = [row["filename"]]
+                if row.get("previous_filename"):
+                    paths.append(row["previous_filename"])
+                row["patch"] = subprocess.run(
+                    ["git", "--literal-pathspecs", "diff", "--no-ext-diff", "--no-textconv",
+                     f"{base_sha}...{head_sha}", "--", *paths], cwd=repo_dir,
+                    check=True, capture_output=True, encoding="utf-8", errors="replace",
+                ).stdout
+        return rows
 
     async def upsert_comment(self, pr: int, body: str) -> str:
         if not body.startswith(MARKER):

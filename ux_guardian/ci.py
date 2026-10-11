@@ -112,7 +112,9 @@ async def ci_pipeline(
         os.environ.get("GITHUB_REPOSITORY", ""), os.environ.get("GITHUB_TOKEN", ""), client
     )
     metadata = await github.metadata(pr)
-    changed = normalize_diff(await github.changed_files(pr))
+    changed = normalize_diff(await github.changed_files(
+        pr, base_sha=metadata.get("base", {}).get("sha"), head_sha=metadata["head"]["sha"]
+    ))
     if metadata.get("changed_files", len(changed)) != len(changed):
         raise ValueError("GitHub returned an incomplete PR file list; refusing partial analysis")
     journeys = load_journeys()

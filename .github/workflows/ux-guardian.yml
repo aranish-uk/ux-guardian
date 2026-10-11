@@ -1,6 +1,7 @@
 name: UX Guardian
 
 on:
+  deployment_status:
   workflow_dispatch:
     inputs:
       pr_number:
@@ -23,19 +24,70 @@ on:
 permissions:
   contents: read
   pull-requests: write
-
-concurrency:
-  group: ux-guardian-${{ inputs.pr_number }}
-  cancel-in-progress: false
+  deployments: read
+  statuses: read
 
 jobs:
+  resolve:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       contains(github.event.deployment_status.environment || github.event.deployment.environment, 'Preview'))
+    runs-on: ubuntu-latest
+    outputs:
+      pr_number: ${{ steps.resolve.outputs.pr_number }}
+      preview_url: ${{ steps.resolve.outputs.preview_url }}
+      agent_runs: ${{ steps.resolve.outputs.agent_runs }}
+      should_run: ${{ steps.resolve.outputs.should_run }}
+    steps:
+      - name: Resolve preview and open same-repository PR
+        id: resolve
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.eventName === 'workflow_dispatch') {
+              core.setOutput('pr_number', context.payload.inputs.pr_number);
+              core.setOutput('preview_url', context.payload.inputs.preview_url);
+              core.setOutput('agent_runs', context.payload.inputs.agent_runs);
+              core.setOutput('should_run', 'true');
+              return;
+            }
+            const { deployment, deployment_status: status } = context.payload;
+            const pulls = await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit, {
+              ...context.repo, commit_sha: deployment.sha, per_page: 100
+            });
+            const pr = pulls.find(pr => pr.state === 'open');
+            if (!pr) {
+              core.info('Skipping UX Guardian: deployment SHA has no open PR.');
+              return;
+            }
+            if (!pr.head.repo || pr.head.repo.full_name.toLowerCase() !==
+                `${context.repo.owner}/${context.repo.repo}`.toLowerCase()) {
+              core.info('Skipping UX Guardian: PR comes from a fork.');
+              return;
+            }
+            const previewUrl = status.environment_url || status.target_url;
+            if (!previewUrl) {
+              core.info('Skipping UX Guardian: deployment has no preview URL.');
+              return;
+            }
+            core.setOutput('pr_number', pr.number);
+            core.setOutput('preview_url', previewUrl);
+            core.setOutput('agent_runs', 'true');
+            core.setOutput('should_run', 'true');
   guardian:
+    needs: resolve
+    if: needs.resolve.outputs.should_run == 'true'
+    concurrency:
+      group: ux-guardian-pr-${{ needs.resolve.outputs.pr_number }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.base_ref }}
+          ref: ${{ inputs.base_ref || 'main' }}
+          fetch-depth: 0
           persist-credentials: false
       - uses: astral-sh/setup-uv@v6
         with:
@@ -49,14 +101,14 @@ jobs:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
           TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
-          UX_PR_NUMBER: ${{ inputs.pr_number }}
-          UX_PREVIEW_URL: ${{ inputs.preview_url }}
-          UX_AGENT_RUNS: ${{ inputs.agent_runs }}
+          UX_PR_NUMBER: ${{ needs.resolve.outputs.pr_number }}
+          UX_PREVIEW_URL: ${{ needs.resolve.outputs.preview_url }}
+          UX_AGENT_RUNS: ${{ needs.resolve.outputs.agent_runs }}
         run: uv run python -m ux_guardian.github.workflow
       - name: Upload reports and screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ux-guardian-pr-${{ inputs.pr_number }}-${{ github.run_attempt }}
+          name: ux-guardian-pr-${{ needs.resolve.outputs.pr_number }}-${{ github.run_attempt }}
           path: artifacts/
           if-no-files-found: warn

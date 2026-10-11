@@ -103,7 +103,9 @@ def test_ci_runs_selected_fixture_checks_and_publishes(monkeypatch, tmp_path):
                 "head": {"sha": "head-sha", "repo": {"full_name": "o/r"}}
             })
         if request.url.path.endswith("/files"):
-            return httpx.Response(200, json=[{"filename": "demo-app/components/auth/login.tsx"}])
+            return httpx.Response(200, json=[{
+                "filename": "demo-app/components/auth/login.tsx", "patch": "fixture patch"
+            }])
         if request.method == "GET":
             return httpx.Response(200, json=[])
         published.append(json.loads(request.content)["body"])
@@ -179,9 +181,12 @@ def test_dispatch_workflow_contract():
     assert inputs["agent_runs"]["default"] == "false"
     assert inputs["base_ref"]["default"] == "main"
     assert inputs["preview_url"]["required"] == inputs["pr_number"]["required"] == "true"
-    assert workflow["permissions"] == {"contents": "read", "pull-requests": "write"}
+    assert workflow["permissions"] == {
+        "contents": "read", "pull-requests": "write", "deployments": "read", "statuses": "read"
+    }
     steps = workflow["jobs"]["guardian"]["steps"]
-    assert steps[0]["with"]["ref"] == "${{ inputs.base_ref }}"
+    assert steps[0]["with"]["ref"] == "${{ inputs.base_ref || 'main' }}"
+    assert steps[0]["with"]["fetch-depth"] == "0"
     assert any(s.get("run") == "uv sync --locked" for s in steps)
     assert steps[-1]["if"] == "always()"
 
@@ -240,7 +245,7 @@ def test_ci_selection_and_acquisition_boundaries(case, monkeypatch, tmp_path):
         if request.url.path.endswith("/files"):
             events.append(("files", []))
             filename = "demo-app/app/cart/page.tsx" if case == "broken-cart" else "helper.ts"
-            return httpx.Response(200, json=[{"filename": filename}])
+            return httpx.Response(200, json=[{"filename": filename, "patch": "fixture patch"}])
         if request.method == "GET":
             return httpx.Response(200, json=[])
         bodies.append(json.loads(request.content)["body"])
@@ -248,7 +253,10 @@ def test_ci_selection_and_acquisition_boundaries(case, monkeypatch, tmp_path):
 
     async def execute():
         async with httpx.AsyncClient(transport=httpx.MockTransport(handle)) as client:
-            return await ci.ci_pipeline(pr=7, preview_url=PREVIEW, output=tmp_path, client=client)
+            return await ci.ci_pipeline(
+                pr=7, preview_url=PREVIEW, agent_runs=case == "clean",
+                output=tmp_path, client=client,
+            )
 
     if case == "fork":
         with pytest.raises(ValueError, match="Fork"):

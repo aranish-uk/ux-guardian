@@ -417,3 +417,22 @@ passed. Mocked CI tests verify publication, configured model, analyzer-inclusive
 call cap, graceful provider errors, saved-JSON reproduction, relevant/fallback hunks,
 30-second cancellation and conditional Search. Updated FR10 snapshots and recorded
 M5 renderings. No live calls, push, deployment or workflow dispatch was performed.
+
+## M4 — Automatic preview trigger and evidence fixes
+
+2026-10-11, `feat/m4-trigger` branched from `feat/m5-wire`.
+Successful deployment statuses whose environment contains Preview resolve an open
+same-repository PR from the deployment SHA, with logged skips for missing PRs,
+forks and missing URLs. The Guardian job uses per-PR cancellation, full Git history,
+and defaults automatic Agent runs on under the existing $2 cap; manual inputs keep
+their defaults. Empty journey selections still skip all evidence and Agent calls.
+Missing API patches are recovered with a local three-dot Git diff including both
+rename paths, fetching absent commit objects without checking out PR code.
+TinyFish run JSON now records the URL's actual preview or production environment.
+
+Verified on Windows: `uv run pytest -q` **212 passed, 11 local-demo tests skipped**;
+`uv run ruff check .` passed; `uv run pyright` zero errors. Tests execute the actual
+workflow resolver JavaScript with a mocked GitHub API, cover automatic/manual
+resolution and skip paths, reproduce a rename in a temporary Git repository, and
+check persisted preview/prod run JSON through mocked TinyFish responses. Existing
+judge, severity and Markdown snapshot tests pass. No live calls or pushes.
