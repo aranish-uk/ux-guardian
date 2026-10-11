@@ -295,3 +295,41 @@ Linux execution remains delegated to the existing CI quality matrix.
 
 No TinyFish Agent run, payment submission, push, remote/credential configuration,
 or production modification. M3 acceptance is complete; M4–M6 remain outstanding.
+
+## M4 — slim manual workflow (2026-10-11)
+
+Implemented on `feat/m4` from `feat/m3`, for local commit and supervisor handoff.
+The authorized M4 scope uses workflow_dispatch only, read-only contents access,
+and screenshot links to Actions artifacts instead of an assets branch. Inputs
+are PR number, existing demo preview URL, trusted base_ref (default main), and
+agent_runs (default false). The workflow installs uv/locked dependencies and
+Chromium, invokes the CI command, and always uploads available evidence.
+
+`ux-guardian ci` reads PR metadata and paginated changed files through httpx,
+rejects forks and incomplete file lists, analyzes affected journeys, runs Fetch
+then both Playwright viewports on preview/prod, judges, renders, writes JSON and
+Markdown plus the job summary, and upserts the marker-keyed comment. It prints
+the comment URL and exits 1 on configured fail_on severities (default P0).
+Missing LLM credentials conservatively select all journeys for unmatched files.
+
+Optional Agents use the BrowserAgent seam, only affected journeys and desktop
+preview/prod pairs, with an estimated budget capped at min(config budget, $2).
+The budget divides into per-journey step caps (three pairs: 20 steps, $1.92).
+Agent-only failures remain in the unconfirmed section; paid confirmation retries
+and diff-grounded fix suggestions remain deferred. Existing adapter polling
+and cancellation enforce client-side caps; actual billing depends on TinyFish's
+step reporting and cancellation latency. No paid call was made in this work.
+
+Verified: `uv run pytest -q` **140 passed, 11 local-demo tests skipped**;
+`uv run ruff check .` passed; `uv run pyright` zero errors. Sixteen M4 tests
+use MockTransport and recorded evidence: create/update and pagination, sanitized
+API errors, fork rejection before acquisition/publication, safe demo origins,
+selected-only acquisition, clean/no-journey early stop, conservative fallback,
+Fetch-before-Playwright order, confirmed mobile P1 and route P0, fail_on exit,
+artifact links, step summary, saved-JSON rendering, Agent-off defaults and
+desktop budget allocation. Updated all FR10 snapshots for singular regression
+and manual rerun wording; mandatory judge/severity tests remain green.
+
+No GitHub credentials are available here, so real PR publication and Linux
+workflow execution remain for the supervisor after push/merge and dispatch.
+Nothing was pushed, deployed, merged, or sent to a live API.

@@ -1,0 +1,62 @@
+name: UX Guardian
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Demo PR number
+        required: true
+        type: number
+      preview_url:
+        description: Existing Vercel preview URL for the demo PR
+        required: true
+        type: string
+      base_ref:
+        description: Trusted Guardian code ref (never the demo PR head)
+        default: main
+        type: string
+      agent_runs:
+        description: Enable paid desktop Agent pairs (budget capped at $2)
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ux-guardian-${{ inputs.pr_number }}
+  cancel-in-progress: false
+
+jobs:
+  guardian:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.base_ref }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.12'
+      - run: uv sync --locked
+      - run: uv run playwright install --with-deps chromium
+      - name: Analyze, test, judge and publish
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+          UX_PR_NUMBER: ${{ inputs.pr_number }}
+          UX_PREVIEW_URL: ${{ inputs.preview_url }}
+          UX_AGENT_RUNS: ${{ inputs.agent_runs }}
+        run: uv run python -m ux_guardian.github.workflow
+      - name: Upload reports and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ux-guardian-pr-${{ inputs.pr_number }}-${{ github.run_attempt }}
+          path: artifacts/
+          if-no-files-found: warn

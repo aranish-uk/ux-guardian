@@ -23,6 +23,28 @@ app.add_typer(live, name="live")
 app.add_typer(demo_app, name="demo")
 
 
+@app.command("ci")
+def ci_command(
+    pr: Annotated[int, typer.Option(min=1)],
+    preview_url: Annotated[str, typer.Option()],
+    agent_runs: bool = False,
+    output: Path = Path("artifacts"),
+) -> None:
+    """Analyze a same-repo PR, test its demo preview and upsert the report."""
+    from ux_guardian.ci import ci_pipeline
+
+    try:
+        url, failed = asyncio.run(ci_pipeline(
+            pr=pr, preview_url=preview_url, agent_runs=agent_runs, output=output
+        ))
+    except (ValueError, ValidationError):
+        typer.echo("CI pipeline failed; check configuration and credentials. Body omitted.")
+        raise typer.Exit(2) from None
+    typer.echo(url)
+    if failed:
+        raise typer.Exit(1)
+
+
 @app.callback()
 def setup() -> None:
     load_dotenv(Path(".env"), override=False)

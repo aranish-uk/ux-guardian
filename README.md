@@ -159,3 +159,35 @@ preserved. Upstream declares MIT in its README and has no LICENSE file.
 See [NOTICE](NOTICE). The bounded asyncio swarm and optional MCP interface are
 adapted; browser-use and its provider-specific LLM dependencies are removed.
 No code was copied from the reference-only repositories listed in the PRD.
+## Manual M4 workflow
+
+After the supervisor merges the workflow to `main`, dispatch it for an existing
+same-repository demo PR and its Vercel preview:
+
+```text
+gh workflow run ux-guardian.yml --ref main -f pr_number=123 -f preview_url="https://ux-guardian-demo-PREVIEW-aranish-uk.vercel.app" -f base_ref=main -f agent_runs=false
+```
+
+Replace the PR number and preview URL with the demo PR's values. Configure Action
+secrets `TINYFISH_API_KEY`, `LLM_API_KEY`, `TEST_EMAIL`, and `TEST_PASSWORD`.
+GitHub supplies `GITHUB_TOKEN`. The trusted `base_ref` supplies Guardian code and
+configuration; PR code is read as diff data through the API and never checked out.
+Fork PRs are rejected before acquisition or publication.
+
+The workflow selects journeys, runs free Fetch and deterministic desktop/mobile
+checks against preview and production, judges and renders the evidence, and
+updates one `<!-- ux-guardian -->` comment. It uploads reports and screenshots
+even when a confirmed P0 makes the pipeline fail, and writes the report to the
+job summary. Screenshot links open the workflow run's artifact download area.
+No assets branch or deployment event is used in this slim M4.
+
+For a local CI invocation, supply `GITHUB_REPOSITORY=owner/repo` and `GITHUB_TOKEN`
+in the environment, then use `uv run ux-guardian ci --pr 123 --preview-url URL`.
+The command prints the sticky comment URL; configured `fail_on` findings exit 1.
+Without an LLM key, unmatched files conservatively select all journeys.
+
+Paid Agent runs require `agent_runs=true` (or CLI `--agent-runs`). That explicit
+opt-in authorizes the displayed estimate. Desktop-only preview/production pairs
+divide a budget of at most $2 into step caps (three pairs: 20 steps each, $1.92).
+Agent-only failures remain unconfirmed because this slim milestone does not run
+paid confirmation retries; deterministic regressions still confirm independently.

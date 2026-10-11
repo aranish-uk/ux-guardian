@@ -13,7 +13,9 @@ def cell(value: str) -> str:
 def render(report: Report) -> str:
     report = redact_model(report)
     verdict = (
-        f"{len(report.findings)} confirmed regressions" if report.findings else "No regressions"
+        f"{len(report.findings)} confirmed "
+        + ("regression" if len(report.findings) == 1 else "regressions")
+        if report.findings else "No regressions"
     )
     lines = [
         "<!-- ux-guardian -->",
@@ -26,6 +28,10 @@ def render(report: Report) -> str:
     if report.fixture:
         label = "Recorded evidence replay" if report.check_results else "Synthetic fixture replay"
         lines += [f"> {label} — no website was tested and no API was called.", ""]
+    if report.analysis_reasoning:
+        lines += [cell(report.analysis_reasoning), ""]
+    if report.artifact_url:
+        lines += [f"[Download report and screenshots]({report.artifact_url})", ""]
     lines += [
         "| Journey | Why tested | Preview desktop | Prod desktop | Preview mobile | Prod mobile |",
         "| --- | --- | --- | --- | --- | --- |",
@@ -59,6 +65,8 @@ def render(report: Report) -> str:
                 if runs
                 else "Not run"
             )
+            if checks and runs:
+                values[-1] += " / Agent " + ("PASS" if runs[0].passed else "FAIL (see evidence)")
         lines.append(
             f"| {cell(affected.name)} | {cell(affected.reason)} | " + " | ".join(values) + " |"
         )
@@ -76,8 +84,8 @@ def render(report: Report) -> str:
             "",
             "| Preview | Production |",
             "| --- | --- |",
-            f"| {screenshot(finding.preview_screenshot, 'Preview')} | "
-            f"{screenshot(finding.prod_screenshot, 'Production')} |",
+            f"| {screenshot(finding.preview_screenshot, 'Preview', report.artifact_url)} | "
+            f"{screenshot(finding.prod_screenshot, 'Production', report.artifact_url)} |",
             "",
             "**Evidence**",
             "",
@@ -96,7 +104,7 @@ def render(report: Report) -> str:
         lines += [f"- {cell(item)}" for item in items] if items else ["None."]
         lines += ["", "</details>", ""]
     lines += [
-        "Re-run: push again once the Action is configured (M4). "
+        "Re-run: dispatch the UX Guardian workflow with the PR number and preview URL. "
         "`/ux-guardian rerun` is planned after MVP.",
         "",
         f"Cost: Agent ${report.cost.agent_usd:.2f} · Fetch ${report.cost.fetch_usd:.2f} · "
@@ -106,5 +114,7 @@ def render(report: Report) -> str:
     return "\n".join(lines)
 
 
-def screenshot(url: str, label: str) -> str:
+def screenshot(url: str, label: str, artifact_url: str = "") -> str:
+    if artifact_url and url:
+        return f"[{label} screenshot: {cell(url)}]({artifact_url})"
     return f"![{label}]({url})" if url else "Not recorded in this fixture"

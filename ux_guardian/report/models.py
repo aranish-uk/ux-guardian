@@ -47,6 +47,8 @@ class Report(Contract):
     prod_url: str
     duration_seconds: float = 0
     fixture: bool = True
+    artifact_url: str = ""
+    analysis_reasoning: str = ""
     affected: list[Affected]
     runs: list[AgentRun]
     checks: list[Check]

@@ -30,6 +30,6 @@ None.
 
 </details>
 
-Re-run: push again once the Action is configured (M4). `/ux-guardian rerun` is planned after MVP.
+Re-run: dispatch the UX Guardian workflow with the PR number and preview URL. `/ux-guardian rerun` is planned after MVP.
 
 Cost: Agent $0.00 · Fetch $0.00 · Search $0.00 · Total $0.00
