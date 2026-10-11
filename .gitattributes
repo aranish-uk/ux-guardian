@@ -2,3 +2,5 @@
 *.png binary
 *.jpg binary
 *.gif binary
+# Unified-diff fixtures preserve context lines, including a single-space blank.
+ux_guardian/fixtures/*.diff -whitespace

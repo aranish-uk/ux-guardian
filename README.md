@@ -74,6 +74,37 @@ tools; it cannot launch a paid agent.
 
 ## Demo app
 
+M3 diff selection is available offline for the three recorded demo diffs:
+
+```text
+uv run ux-guardian analyze --base feat/m0 --head demo/mobile-signin-overlay
+uv run ux-guardian analyze --base feat/m0 --head demo/broken-cart-route
+uv run ux-guardian analyze --base feat/m0 --head demo/copy-change
+```
+
+`--diff-file` accepts unified diff text or a GitHub PR files JSON array.
+Ownership globs and shared dependencies are authoritative. Stage 2 adds
+high/medium-confidence journeys; low confidence is advisory and selects no runs.
+The demo uses one global stylesheet and root layout shared by every entry page,
+so changing either selects all three journeys. Patches prefer UI files and use
+a conservative UTF-8 byte bound on the token budget, without tokenizer downloads.
+
+Ordinary `analyze` never calls an API. It replays exact-diff recordings and marks
+unrecorded unmatched files as requiring LLM review. `--llm-fixture` accepts a
+saved live output, verified against the normalized diff's SHA-256. Explicit live
+commands use `LLM_API_KEY`, the configured provider/model, and the official SDK:
+
+```text
+uv run ux-guardian live models
+uv run ux-guardian live analyze --base feat/m0 --head demo/copy-change --output artifacts/analysis.json
+```
+
+`live models` makes one free discovery request. `live analyze` makes at most one
+billable structured-output request, with retries disabled, and no TinyFish Agent
+calls. For demo verification it also reviews owned hunks; that review remains
+additive and cannot remove deterministic selections. The full PR orchestration
+is a later milestone.
+
 Run these from `demo-app/`:
 
 ```text

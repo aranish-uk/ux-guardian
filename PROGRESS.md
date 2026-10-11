@@ -217,3 +217,81 @@ when pushed. A CLI dry-run smoke and `git diff --check` also pass.
 
 M2 acceptance is complete. No push, PR publishing, Agent call, payment submission
 or production modification was performed. M3–M6 remain out of scope.
+
+## M3 — authoritative diff selection and additive OpenAI inference
+
+2026-10-11, `feat/m3` created from `feat/m2`.
+
+- Normalizes unified diffs, `git diff <base>...<head>` and GitHub PR files JSON
+  to changed files, old/new paths and patch hunks. Ownership globs operate on
+  app-relative paths (the demo-app prefix is removed), including deleted and
+  renamed paths. Root layout, global CSS, middleware and dependency changes
+  conservatively select all demo journeys: every entry page shares the demo's
+  root layout/styles/dependency graph. Shared reasons are deterministic.
+- The LlmClient protocol now has an official OpenAI SDK adapter. Provider/model
+  come from config; LLM_API_KEY comes from environment/ignored .env. Pydantic
+  validates structured JSON, confidence and known journey IDs. Stage 2 reviews
+  unmatched files and can only add journeys. Low confidence remains advisory
+  and selects no Agent runs. Patches prefer UI files and use a UTF-8 byte upper
+  bound on byte-BPE tokens; this is conservative and requires no tokenizer
+  network downloads. Prompt data and saved reasons are redacted.
+- `analyze` is offline: exact normalized-diff SHA-256 recordings complete stage
+  2 for the demo branches. Unknown unmatched files report "LLM review required"
+  instead of claiming no impact. `--diff-file` accepts text or PR-files JSON;
+  `--llm-fixture` replays a saved live output only for its matching diff.
+- One explicit `uv run ux-guardian live models` made one free models.list call.
+  The key includes gpt-6-luna, gpt-5.6-luna, gpt-5.4-nano and other models.
+  Chose **gpt-6-luna**, available to this key and documented as a current efficient
+  model for focused workloads, with structured outputs. Official pricing is
+  $0.10 input / $0.50 output per million tokens:
+  https://developers.openai.com/api/docs/models/gpt-6-luna.
+  The SDK uses Responses parse with Pydantic, store=false, an output cap and zero
+  retries. Ordinary tests/CLI never instantiate a live SDK client.
+- Live verification used explicit `live analyze --base feat/m0 --head <branch>`:
+  (a) all three journeys selected by authoritative global-CSS sharing; the LLM
+  independently identified sign-in at high confidence; (b) search-cart and
+  checkout selected by the deleted cart ownership path, with LLM medium/high
+  confidence respectively; (c) no journeys, no findings and no Agent runs.
+  Four inference calls total: one per demo plus a repeated copy analysis after
+  correcting a Windows-default text decoding error that altered a Unicode arrow.
+  The final copy diff preserves every character except the marketing sentence.
+  All three final responses and real diffs against feat/m0 are committed fixtures.
+  Live demo verification also reviews owned hunks to meet the one-call-per-demo
+  check; it still cannot remove glob/shared selections.
+
+Preview-only demo deployments from branches based on `feat/m0`:
+
+- `demo/broken-cart-route`, commit `86f91aa`: moves app/cart to app/bag while
+  leaving navigation and add-to-cart links pointing at `/cart`, which now 404s.
+  https://ux-guardian-demo-mqmzr4avw-aranish-uk.vercel.app
+  Deployment dpl_9jhQ8JxQE7PZE9MWqzm9dHL6vA8t reached READY, productionUrl null.
+- `demo/copy-change`, final commit `299a62a`: marketing sentence change only.
+  https://ux-guardian-demo-a9nq91ptg-aranish-uk.vercel.app
+  Deployment dpl_CrU43uHvZAjQNmbj16iRCu91eUEL reached READY, productionUrl null.
+  The earlier copy preview was superseded after preserving Unicode.
+- Both deployed with `npx vercel@63.1.2 deploy --yes` from their ignored branch
+  worktrees. No --prod, promotion, Git connection or project configuration edit.
+  Production remains https://ux-guardian-demo.vercel.app.
+
+`uv run ux-guardian live checks --env both --preview-url
+https://ux-guardian-demo-mqmzr4avw-aranish-uk.vercel.app --output
+artifacts/m3-broken-cart` ran all M2 checks: 10 PASS, checkout preview desktop
+and mobile FAIL with origin 404, passing prod baselines, **one confirmed P0**,
+80.81 seconds, TinyFish $0.00, no Agents. Fetch made one free six-URL batch;
+its extraction warnings remain advisory. Report JSON is recorded in
+ux_guardian/fixtures/m3_broken_cart.json; screenshots/diffs remain ignored local
+artifacts. The M3 FR10 Markdown snapshot and replay recompute the P0 offline.
+Unauthenticated HTTP checks also verified broken `/cart` 404, production `/cart`
+200, and final copy preview 200 with the expected marketing sentence.
+
+Validation: pytest 124 passed, 11 local-demo harness tests skipped; Ruff clean;
+Pyright zero errors. M3 tests cover demo selections and both input formats,
+authoritative/additive behavior, low-confidence no-run behavior, malformed or
+unknown LLM results, shared dependencies, script-only config changes, glob
+semantics, rename/delete/binary/plain diffs, truncation and redaction, offline
+CLI replay and stale-record rejection, SDK requests and sanitized no-retry
+errors. Existing judge truth table, severity rules and report snapshots pass.
+Linux execution remains delegated to the existing CI quality matrix.
+
+No TinyFish Agent run, payment submission, push, remote/credential configuration,
+or production modification. M3 acceptance is complete; M4–M6 remain outstanding.

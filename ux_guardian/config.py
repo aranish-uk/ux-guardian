@@ -64,7 +64,7 @@ class Config(BaseModel):
     budget_usd_per_run: float = Field(default=3, gt=0, allow_inf_nan=False)
     fail_on: list[Literal["P0", "P1", "P2"]] = Field(default_factory=lambda: ["P0"])
     llm_provider: str = "openai"
-    llm_model: str = "configured-in-M3"
+    llm_model: str = "gpt-6-luna"
     confirm_retries: int = Field(default=1, ge=0, le=1)
     include_fetch_precheck: bool = True
     include_search: bool = True

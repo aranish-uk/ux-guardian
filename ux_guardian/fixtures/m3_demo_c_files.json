@@ -1,0 +1,8 @@
+[
+  {
+    "filename": "demo-app/app/page.tsx",
+    "previous_filename": null,
+    "status": "modified",
+    "patch": "@@ -4,7 +4,7 @@ import ProductGrid from \"../components/product-grid\";\n \n export default function Home() {\n   return <><section className=\"hero\"><p className=\"eyebrow\">LESS, BUT BETTER</p>\n-    <h1>Made for<br />your everyday.</h1><p>Useful things. Thoughtful details. A little joy in the ordinary.</p>\n+    <h1>Made for<br />your everyday.</h1><p>Thoughtful essentials for brighter everyday moments.</p>\n     <Link className=\"button\" href=\"/search\">Explore the collection \u2197</Link>\n   </section><section><div className=\"section-heading\"><h2>The essentials</h2><span>Three good things to start with</span></div>\n     <ProductGrid items={products} /></section></>;"
+  }
+]

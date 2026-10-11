@@ -1,0 +1,14 @@
+[
+  {
+    "filename": "demo-app/app/bag/page.tsx",
+    "previous_filename": null,
+    "status": "added",
+    "patch": "@@ -0,0 +1,2 @@\n+import { CartContents } from \"../../components/storefront\";\n+export default function CartPage() { return <CartContents />; }"
+  },
+  {
+    "filename": "demo-app/app/cart/page.tsx",
+    "previous_filename": null,
+    "status": "removed",
+    "patch": "@@ -1,2 +0,0 @@\n-import { CartContents } from \"../../components/storefront\";\n-export default function CartPage() { return <CartContents />; }"
+  }
+]

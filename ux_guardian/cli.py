@@ -1,14 +1,19 @@
 import asyncio
+import hashlib
+import json
 from importlib.resources import files
 from pathlib import Path
 from typing import Annotated, cast
 
 import typer
 from dotenv import load_dotenv
+from pydantic import ValidationError
 
 from ux_guardian.agents.tinyfish import TinyFishAgent
 from ux_guardian.config import Environment, Viewport, load_config, load_journeys, validate_url
 from ux_guardian.demo import app as demo_app
+from ux_guardian.diff.analyzer import Predictions, analyze, git_diff, normalize_diff
+from ux_guardian.llm import OpenAiLlmClient
 from ux_guardian.report.models import Report
 from ux_guardian.run import live_checks, replay_pipeline, write_report
 
@@ -21,6 +26,122 @@ app.add_typer(demo_app, name="demo")
 @app.callback()
 def setup() -> None:
     load_dotenv(Path(".env"), override=False)
+
+
+class RecordedLlm:
+    def __init__(self, response: Predictions) -> None:
+        self.response = response
+
+    async def complete_json(self, *, system: str, prompt: str) -> dict[str, object]:
+        return self.response.model_dump()
+
+
+@live.command("models")
+def live_models() -> None:
+    """One free models.list request; prints model IDs only."""
+
+    async def discover() -> list[str]:
+        client = OpenAiLlmClient(load_config())
+        try:
+            return await client.list_models()
+        finally:
+            await client.close()
+
+    try:
+        typer.echo("\n".join(asyncio.run(discover())))
+    except ValueError as error:
+        raise typer.BadParameter(str(error)) from None
+
+
+def analysis_command(
+    base: str,
+    head: str,
+    diff_file: Path | None,
+    llm_fixture: Path | None,
+    output: Path | None,
+    use_live: bool,
+) -> None:
+    changed = (
+        normalize_diff(diff_file.read_text(encoding="utf-8")) if diff_file else git_diff(base, head)
+    )
+    fingerprint = hashlib.sha256(
+        json.dumps([f.model_dump() for f in changed], sort_keys=True).encode()
+    ).hexdigest()
+    llm = None
+    if not use_live:
+        if llm_fixture:
+            record = json.loads(llm_fixture.read_text(encoding="utf-8"))
+        else:
+            records = json.loads(
+                files("ux_guardian.fixtures").joinpath("m3_llm.json").read_text(encoding="utf-8")
+            )
+            record = records.get(fingerprint)
+        if record:
+            if record["diff_sha256"] != fingerprint:
+                raise typer.BadParameter("LLM fixture does not match this diff")
+            llm = RecordedLlm(Predictions.model_validate(record["response"]))
+
+    async def execute():
+        if not use_live:
+            return await analyze(changed, load_journeys(), llm)
+        client = OpenAiLlmClient(load_config())
+        try:
+            # Explicit demo verification also reviews glob-owned hunks; additive only.
+            return await analyze(changed, load_journeys(), client, review_all=True)
+        finally:
+            await client.close()
+
+    try:
+        result = asyncio.run(execute())
+    except ValidationError:
+        raise typer.BadParameter("LLM output failed schema validation; body omitted") from None
+    except ValueError as error:
+        raise typer.BadParameter(str(error)) from None
+    typer.echo(result.outcome)
+    for item in result.affected:
+        typer.echo(f"{item.journey_id} [{item.source}]: {item.reason}")
+    for item in result.low_confidence:
+        typer.echo(f"{item.journey_id} [low confidence, advisory only]: {item.reason}")
+    if result.reasoning:
+        typer.echo(result.reasoning)
+    if output:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(
+            json.dumps(
+                {
+                    "diff_sha256": fingerprint,
+                    "model": load_config().llm_model,
+                    "response": result.llm_response.model_dump() if result.llm_response else None,
+                    "analysis": result.model_dump(),
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+
+
+@app.command("analyze")
+def analyze_command(
+    base: str = "feat/m0",
+    head: str = "HEAD",
+    diff_file: Path | None = None,
+    llm_fixture: Path | None = None,
+    output: Path | None = None,
+) -> None:
+    """Offline glob/shared selection and exact-diff recorded LLM replay."""
+    analysis_command(base, head, diff_file, llm_fixture, output, False)
+
+
+@live.command("analyze")
+def live_analyze_command(
+    base: str = "feat/m0",
+    head: str = "HEAD",
+    diff_file: Path | None = None,
+    output: Path | None = None,
+) -> None:
+    """One live OpenAI structured-output call. No TinyFish Agents."""
+    typer.echo("One billable OpenAI LLM call; TinyFish Agent runs: 0.")
+    analysis_command(base, head, diff_file, None, output, True)
 
 
 @app.command("run")

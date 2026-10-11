@@ -1,0 +1,120 @@
+{
+  "4d8b87b2376178e3ffcfe41a6ccbcf6faa858a4ac5d8ff71fc818d534b1afff4": {
+    "diff_sha256": "4d8b87b2376178e3ffcfe41a6ccbcf6faa858a4ac5d8ff71fc818d534b1afff4",
+    "model": "gpt-6-luna",
+    "response": {
+      "affected": [
+        {
+          "journey_id": "sign-in",
+          "reason": "On screens narrower than 640px, the new positioned overlay sits above the sign-in button and can intercept clicks, preventing form submission.",
+          "confidence": "high"
+        }
+      ],
+      "reasoning": "The change adds an aria-hidden overlay within the login form. Its mobile CSS places it over the lower portion of the submit button with a higher stacking order, so it can block the interaction required to reach the sign-in dashboard. The search and checkout journeys have no apparent functional connection to this change."
+    },
+    "analysis": {
+      "affected": [
+        {
+          "journey_id": "sign-in",
+          "reason": "Global styles changed: demo-app/app/globals.css",
+          "source": "shared"
+        },
+        {
+          "journey_id": "search-cart",
+          "reason": "Global styles changed: demo-app/app/globals.css",
+          "source": "shared"
+        },
+        {
+          "journey_id": "checkout",
+          "reason": "Global styles changed: demo-app/app/globals.css",
+          "source": "shared"
+        }
+      ],
+      "low_confidence": [],
+      "llm_response": {
+        "affected": [
+          {
+            "journey_id": "sign-in",
+            "reason": "On screens narrower than 640px, the new positioned overlay sits above the sign-in button and can intercept clicks, preventing form submission.",
+            "confidence": "high"
+          }
+        ],
+        "reasoning": "The change adds an aria-hidden overlay within the login form. Its mobile CSS places it over the lower portion of the submit button with a higher stacking order, so it can block the interaction required to reach the sign-in dashboard. The search and checkout journeys have no apparent functional connection to this change."
+      },
+      "pending_files": [],
+      "reasoning": "The change adds an aria-hidden overlay within the login form. Its mobile CSS places it over the lower portion of the submit button with a higher stacking order, so it can block the interaction required to reach the sign-in dashboard. The search and checkout journeys have no apparent functional connection to this change."
+    },
+    "branch": "demo/mobile-signin-overlay"
+  },
+  "5e406665ab141fdbfe9f9ee27eb98cdead4dc358e701851e7ceb9bf0b8374c52": {
+    "diff_sha256": "5e406665ab141fdbfe9f9ee27eb98cdead4dc358e701851e7ceb9bf0b8374c52",
+    "model": "gpt-6-luna",
+    "response": {
+      "affected": [
+        {
+          "journey_id": "checkout",
+          "reason": "The cart page route `/cart` was removed and its page moved to `/bag`, so the checkout journey's `/cart` entry path may no longer load the cart or reach the payment step.",
+          "confidence": "high"
+        },
+        {
+          "journey_id": "search-cart",
+          "reason": "The journey may navigate to `/cart` after adding the tote; that route was removed, potentially interrupting the cart flow.",
+          "confidence": "medium"
+        }
+      ],
+      "reasoning": "The diff moves the page rendering CartContents from `/cart` to `/bag`. This plausibly breaks journeys that rely on the old cart route; it does not establish whether navigation or redirects were updated elsewhere."
+    },
+    "analysis": {
+      "affected": [
+        {
+          "journey_id": "search-cart",
+          "reason": "Ownership glob matched demo-app/app/cart/page.tsx",
+          "source": "glob"
+        },
+        {
+          "journey_id": "checkout",
+          "reason": "Ownership glob matched demo-app/app/cart/page.tsx",
+          "source": "glob"
+        }
+      ],
+      "low_confidence": [],
+      "llm_response": {
+        "affected": [
+          {
+            "journey_id": "checkout",
+            "reason": "The cart page route `/cart` was removed and its page moved to `/bag`, so the checkout journey's `/cart` entry path may no longer load the cart or reach the payment step.",
+            "confidence": "high"
+          },
+          {
+            "journey_id": "search-cart",
+            "reason": "The journey may navigate to `/cart` after adding the tote; that route was removed, potentially interrupting the cart flow.",
+            "confidence": "medium"
+          }
+        ],
+        "reasoning": "The diff moves the page rendering CartContents from `/cart` to `/bag`. This plausibly breaks journeys that rely on the old cart route; it does not establish whether navigation or redirects were updated elsewhere."
+      },
+      "pending_files": [],
+      "reasoning": "The diff moves the page rendering CartContents from `/cart` to `/bag`. This plausibly breaks journeys that rely on the old cart route; it does not establish whether navigation or redirects were updated elsewhere."
+    },
+    "branch": "demo/broken-cart-route"
+  },
+  "a93b14055722eb1a88c573fba18ded228def4688644ffd716d28382d82ccbfce": {
+    "diff_sha256": "a93b14055722eb1a88c573fba18ded228def4688644ffd716d28382d82ccbfce",
+    "model": "gpt-6-luna",
+    "response": {
+      "affected": [],
+      "reasoning": "The only change replaces descriptive marketing copy on the home page. It does not alter navigation, functionality, or any supplied journey\u2019s success criteria."
+    },
+    "analysis": {
+      "affected": [],
+      "low_confidence": [],
+      "llm_response": {
+        "affected": [],
+        "reasoning": "The only change replaces descriptive marketing copy on the home page. It does not alter navigation, functionality, or any supplied journey\u2019s success criteria."
+      },
+      "pending_files": [],
+      "reasoning": "The only change replaces descriptive marketing copy on the home page. It does not alter navigation, functionality, or any supplied journey\u2019s success criteria."
+    },
+    "branch": "demo/copy-change"
+  }
+}

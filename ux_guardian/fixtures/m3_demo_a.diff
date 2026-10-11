@@ -1,0 +1,28 @@
+diff --git a/demo-app/app/(auth)/login/page.tsx b/demo-app/app/(auth)/login/page.tsx
+index 4a72300..c81797f 100644
+--- a/demo-app/app/(auth)/login/page.tsx
++++ b/demo-app/app/(auth)/login/page.tsx
+@@ -6,6 +6,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{
+     <form action="/api/login" method="post"><label htmlFor="email">Email</label>
+       <input id="email" name="email" type="email" autoComplete="username" required />
+       <label htmlFor="password">Password</label><input id="password" name="password" type="password" autoComplete="current-password" required />
+-      <button type="submit">Sign in</button></form>
++      <div className="signin-submit"><button type="submit">Sign in</button>
++        <div className="signin-overlay" aria-hidden="true" /></div></form>
+   </section>;
+ }
+diff --git a/demo-app/app/globals.css b/demo-app/app/globals.css
+index 6cf76c8..04a787f 100644
+--- a/demo-app/app/globals.css
++++ b/demo-app/app/globals.css
+@@ -1,4 +1,10 @@
+ :root { --ink: #243b32; --paper: #fbfaf6; --line: #dbddd5; --muted: #69736b; }
++.signin-submit { position: relative; display: inline-block; }
++.signin-overlay { display: none; }
++@media (width < 640px) {
++  .signin-overlay { display: block; position: absolute; inset: 20px 0 0;
++    z-index: 10; background: rgba(190, 113, 61, .25); }
++}
+ * { box-sizing: border-box; }
+ body { margin: 0; color: var(--ink); background: var(--paper); font-family: Arial, Helvetica, sans-serif; }
+ a { color: inherit; text-underline-offset: 5px; }

@@ -7,7 +7,7 @@ concurrency: 2
 budget_usd_per_run: 3
 fail_on: [P0]
 llm_provider: openai
-llm_model: configured-in-M3
+llm_model: gpt-6-luna
 confirm_retries: 1
 include_fetch_precheck: true
 include_search: true

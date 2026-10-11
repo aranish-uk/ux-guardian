@@ -1,0 +1,16 @@
+diff --git a/demo-app/app/bag/page.tsx b/demo-app/app/bag/page.tsx
+new file mode 100644
+index 0000000..443ee38
+--- /dev/null
++++ b/demo-app/app/bag/page.tsx
+@@ -0,0 +1,2 @@
++import { CartContents } from "../../components/storefront";
++export default function CartPage() { return <CartContents />; }
+diff --git a/demo-app/app/cart/page.tsx b/demo-app/app/cart/page.tsx
+deleted file mode 100644
+index 443ee38..0000000
+--- a/demo-app/app/cart/page.tsx
++++ /dev/null
+@@ -1,2 +0,0 @@
+-import { CartContents } from "../../components/storefront";
+-export default function CartPage() { return <CartContents />; }

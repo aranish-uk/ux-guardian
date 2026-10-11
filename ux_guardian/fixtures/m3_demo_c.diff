@@ -1,0 +1,13 @@
+diff --git a/demo-app/app/page.tsx b/demo-app/app/page.tsx
+index f18c556..d33fc50 100644
+--- a/demo-app/app/page.tsx
++++ b/demo-app/app/page.tsx
+@@ -4,7 +4,7 @@ import ProductGrid from "../components/product-grid";
+ 
+ export default function Home() {
+   return <><section className="hero"><p className="eyebrow">LESS, BUT BETTER</p>
+-    <h1>Made for<br />your everyday.</h1><p>Useful things. Thoughtful details. A little joy in the ordinary.</p>
++    <h1>Made for<br />your everyday.</h1><p>Thoughtful essentials for brighter everyday moments.</p>
+     <Link className="button" href="/search">Explore the collection ↗</Link>
+   </section><section><div className="section-heading"><h2>The essentials</h2><span>Three good things to start with</span></div>
+     <ProductGrid items={products} /></section></>;

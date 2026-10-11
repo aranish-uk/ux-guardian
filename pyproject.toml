@@ -14,13 +14,14 @@ dependencies = [
   "Pillow>=11",
   "pixelmatch>=0.3",
   "python-dotenv>=1.1",
+  "openai>=3.29.0",
 ]
 
 [tool.setuptools.packages.find]
 include = ["ux_guardian*"]
 
 [tool.setuptools.package-data]
-"ux_guardian.fixtures" = ["*.json"]
+"ux_guardian.fixtures" = ["*.json", "*.diff"]
 
 [project.scripts]
 ux-guardian = "ux_guardian.cli:app"
