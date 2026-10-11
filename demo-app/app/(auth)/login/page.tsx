@@ -6,6 +6,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
     <form action="/api/login" method="post"><label htmlFor="email">Email</label>
       <input id="email" name="email" type="email" autoComplete="username" required />
       <label htmlFor="password">Password</label><input id="password" name="password" type="password" autoComplete="current-password" required />
-      <button type="submit">Sign in</button></form>
+      <div className="signin-submit"><button type="submit">Sign in</button>
+        <div className="signin-overlay" aria-hidden="true" /></div></form>
   </section>;
 }
