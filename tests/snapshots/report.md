@@ -22,7 +22,7 @@
 
 | Preview | Production |
 | --- | --- |
-| Not recorded in this fixture | Not recorded in this fixture |
+| Not recorded | Not recorded |
 
 **Evidence**
 
@@ -40,6 +40,17 @@ No patch is proposed without a real diff.
 Confidence: low
 
 </details>
+
+### TinyFish agent journeys (desktop)
+
+| Journey | Env | Result | Steps | Cost | Final step | Run ID |
+| --- | --- | --- | --- | --- | --- | --- |
+| Sign in with test account | Preview | PASS | 2 | $0.00 | Not recorded | fixture- |
+| Sign in with test account | Production | PASS | 2 | $0.00 | Not recorded | fixture- |
+| Search → product → add to cart | Preview | PASS | 2 | $0.00 | Not recorded | fixture- |
+| Search → product → add to cart | Production | PASS | 2 | $0.00 | Not recorded | fixture- |
+| Checkout to payment step | Preview | PASS | 2 | $0.00 | Not recorded | fixture- |
+| Checkout to payment step | Production | PASS | 2 | $0.00 | Not recorded | fixture- |
 
 <details>
 <summary>Pre-existing issues (0)</summary>

@@ -9,6 +9,13 @@
 | Search → product → add to cart | All configured journeys (M2 entry checks) | PASS | PASS | PASS | PASS |
 | Checkout to payment step | All configured journeys (M2 entry checks) | PASS | PASS | PASS | PASS |
 
+### TinyFish agent journeys (desktop)
+
+| Journey | Env | Result | Steps | Cost | Final step | Run ID |
+| --- | --- | --- | --- | --- | --- | --- |
+
+No desktop agent journeys were run.
+
 <details>
 <summary>Pre-existing issues (0)</summary>
 

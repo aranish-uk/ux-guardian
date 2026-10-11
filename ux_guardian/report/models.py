@@ -48,6 +48,7 @@ class Report(Contract):
     duration_seconds: float = 0
     fixture: bool = True
     artifact_url: str = ""
+    asset_urls: dict[str, str] = Field(default_factory=dict)
     analysis_reasoning: str = ""
     affected: list[Affected]
     runs: list[AgentRun]

@@ -30,8 +30,6 @@ def render(report: Report) -> str:
         lines += [f"> {label} — no website was tested and no API was called.", ""]
     if report.analysis_reasoning:
         lines += [cell(report.analysis_reasoning), ""]
-    if report.artifact_url:
-        lines += [f"[Download report and screenshots]({report.artifact_url})", ""]
     lines += [
         "| Journey | Why tested | Preview desktop | Prod desktop | Preview mobile | Prod mobile |",
         "| --- | --- | --- | --- | --- | --- |",
@@ -84,17 +82,35 @@ def render(report: Report) -> str:
             "",
             "| Preview | Production |",
             "| --- | --- |",
-            f"| {screenshot(finding.preview_screenshot, 'Preview', report.artifact_url)} | "
-            f"{screenshot(finding.prod_screenshot, 'Production', report.artifact_url)} |",
+            f"| {screenshot(finding.preview_screenshot, 'Preview', report)} | "
+            f"{screenshot(finding.prod_screenshot, 'Production', report)} |",
             "",
             "**Evidence**",
             "",
         ]
         lines += [f"- {cell(signal)}" for signal in finding.evidence]
         lines += ["", "**Fix suggestion**", "", finding.fix_suggestion, ""]
-        if finding.replay_url:
-            lines += [f"[TinyFish replay]({finding.replay_url})", ""]
         lines += ["</details>", ""]
+    lines += [
+        "### TinyFish agent journeys (desktop)", "",
+        "| Journey | Env | Result | Steps | Cost | Final step | Run ID |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    names = {affected.journey_id: affected.name for affected in report.affected}
+    for run in report.runs:
+        if run.viewport != "desktop":
+            continue
+        result = "PASS" if run.passed else "FAIL" if run.status == "COMPLETED" else run.status
+        image = screenshot(run.steps[-1].screenshot_path if run.steps else "",
+                           "Final step", report, width=220)
+        lines.append(
+            f"| {cell(names.get(run.journey_id, run.journey_id))} | "
+            f"{'Preview' if run.env == 'preview' else 'Production'} | {cell(result)} | "
+            f"{len(run.steps)} | ${run.cost_usd:.2f} | {image} | {cell(run.run_id[:8])} |"
+        )
+    if not any(run.viewport == "desktop" for run in report.runs):
+        lines += ["", "No desktop agent journeys were run."]
+    lines.append("")
     for title, items in [
         ("Pre-existing issues", report.preexisting),
         ("Flaky / needs human look", report.flaky),
@@ -111,10 +127,16 @@ def render(report: Report) -> str:
         f"Search ${report.cost.search_usd:.2f} · Total ${report.cost.total_usd:.2f}",
         "",
     ]
+    if report.artifact_url:
+        lines += [f"[Full evidence (zip)]({report.artifact_url})", ""]
     return "\n".join(lines)
 
 
-def screenshot(url: str, label: str, artifact_url: str = "") -> str:
-    if artifact_url and url:
-        return f"[{label} screenshot: {cell(url)}]({artifact_url})"
-    return f"![{label}]({url})" if url else "Not recorded in this fixture"
+def screenshot(source: str, label: str, report: Report, *, width: int = 260) -> str:
+    if not source:
+        return "Not recorded"
+    url = report.asset_urls.get(source, "")
+    if not url and report.artifact_url:
+        return f"[{label} screenshot: {cell(source)}]({report.artifact_url})"
+    url = url or source
+    return f'<img width="{width}" alt="{cell(label)}" src="{cell(url)}">'

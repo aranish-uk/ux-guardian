@@ -436,3 +436,26 @@ workflow resolver JavaScript with a mocked GitHub API, cover automatic/manual
 resolution and skip paths, reproduce a rename in a temporary Git repository, and
 check persisted preview/prod run JSON through mocked TinyFish responses. Existing
 judge, severity and Markdown snapshot tests pass. No live calls or pushes.
+
+## Evidence hosting — durable inline PR screenshots
+
+2026-10-11, `feat/assets` branched from `feat/m4-trigger`.
+Before comment rendering, downloaded Playwright screenshots and each Agent run's
+final step are published through GitHub's Git Data API to `ux-guardian-assets`,
+under `pr-<n>/run-<github_run_id>/shots/` and `agent/<run_id>.jpg`. The first
+publication creates a parentless orphan commit; later publications preserve the
+existing tree and update the ref without force. Only final Agent screenshots are
+hosted; the complete step evidence remains in the Actions artifact. Missing files
+and upload failures retain artifact links and log no sensitive response details.
+Hosted URL mappings are saved in `report.json` for deterministic reproduction.
+Findings use 260px inline images; an expanded desktop Agent table uses 220px final
+step thumbnails. Streaming replay links are removed, and Full evidence (zip) is
+the footer link. Workflow contents permission is write; other permissions stay
+unchanged.
+
+Verified on Windows: `uv run pytest -q` **224 passed, 11 local-demo tests skipped**;
+`uv run ruff check .` passed; `uv run pyright` zero errors; `git diff --check`
+passed. Mocked transport covers orphan creation and existing branch updates,
+blob/tree/commit/ref failures and transport errors, missing/outside files, final
+Agent screenshot selection, URL rendering, snapshots, saved JSON reproduction,
+and CI publication after successful or failed uploads. No live calls or pushes.

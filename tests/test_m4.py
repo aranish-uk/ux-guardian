@@ -77,7 +77,8 @@ def test_preview_origin_restriction(url):
         ci.preview_config(load_config(), url)
 
 
-def test_ci_runs_selected_fixture_checks_and_publishes(monkeypatch, tmp_path):
+@pytest.mark.parametrize("upload_failure", [False, True])
+def test_ci_runs_selected_fixture_checks_and_publishes(monkeypatch, tmp_path, upload_failure):
     monkeypatch.setenv("GITHUB_REPOSITORY", "o/r")
     monkeypatch.setenv("GITHUB_TOKEN", "fixture-token")
     monkeypatch.setenv("GITHUB_RUN_ID", "123")
@@ -85,19 +86,36 @@ def test_ci_runs_selected_fixture_checks_and_publishes(monkeypatch, tmp_path):
     monkeypatch.delenv("LLM_API_KEY", raising=False)
     acquired = []
     published = []
+    assets_published = []
     saved = Report.model_validate_json(FIXTURES.joinpath("m2_mobile_overlay.json").read_text())
 
     async def checks(*, config, journeys, environments, output):
         acquired.extend(j.id for j in journeys)
         assert environments == ["preview", "prod"]
         assert config.preview_url == PREVIEW
+        recorded = [c.model_copy(deep=True) for c in saved.check_results
+                    if c.journey_id == "sign-in"]
+        directory = output / "screenshots"
+        directory.mkdir()
+        for check in recorded:
+            path = directory / f"{check.env}-{check.viewport}.png"
+            path.write_bytes(b"fixture-png")
+            check.screenshot_path = str(path)
         return ci.checks_report(
             config=config, journeys=journeys,
-            checks=[c for c in saved.check_results if c.journey_id == "sign-in"],
+            checks=recorded,
             fetch=saved.fetch,
         )
 
     def handle(request):
+        if "/git/" in request.url.path:
+            if request.url.path.endswith("/git/ref/heads/ux-guardian-assets"):
+                return httpx.Response(404)
+            if upload_failure and request.url.path.endswith("/git/blobs"):
+                return httpx.Response(403)
+            if request.url.path.endswith("/git/refs"):
+                assets_published.append(True)
+            return httpx.Response(201, json={"sha": "fixture-sha"})
         if request.url.path.endswith("/pulls/7"):
             return httpx.Response(200, json={
                 "head": {"sha": "head-sha", "repo": {"full_name": "o/r"}}
@@ -108,6 +126,7 @@ def test_ci_runs_selected_fixture_checks_and_publishes(monkeypatch, tmp_path):
             }])
         if request.method == "GET":
             return httpx.Response(200, json=[])
+        assert bool(assets_published) != upload_failure
         published.append(json.loads(request.content)["body"])
         return httpx.Response(201, json={"html_url": "https://github.com/o/r/pull/7#comment-1"})
 
@@ -130,6 +149,14 @@ def test_ci_runs_selected_fixture_checks_and_publishes(monkeypatch, tmp_path):
     assert "1 confirmed regressions" not in body
     assert "actions/runs/123#artifacts" in body
     assert "![Preview]" not in body
+    assert bool(report.asset_urls) != upload_failure
+    assert ('<img width="260"' in body) != upload_failure
+    assert ("raw.githubusercontent.com/o/r/ux-guardian-assets/pr-7/run-123/" in body) != (
+        upload_failure
+    )
+    assert "TinyFish replay" not in body
+    assert "Full evidence (zip)" in body
+    assert render(report) == body
     assert (tmp_path / "summary.md").read_text(encoding="utf-8") == body
     assert (tmp_path / "report.md").read_text(encoding="utf-8") == body
 
@@ -182,7 +209,7 @@ def test_dispatch_workflow_contract():
     assert inputs["base_ref"]["default"] == "main"
     assert inputs["preview_url"]["required"] == inputs["pr_number"]["required"] == "true"
     assert workflow["permissions"] == {
-        "contents": "read", "pull-requests": "write", "deployments": "read", "statuses": "read"
+        "contents": "write", "pull-requests": "write", "deployments": "read", "statuses": "read"
     }
     steps = workflow["jobs"]["guardian"]["steps"]
     assert steps[0]["with"]["ref"] == "${{ inputs.base_ref || 'main' }}"

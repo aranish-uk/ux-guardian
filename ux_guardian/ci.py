@@ -17,6 +17,7 @@ from ux_guardian.enrich.fix import FixSuggestion
 from ux_guardian.github.pr import GitHubPr
 from ux_guardian.judge.judge import Verdict, judge_evidence
 from ux_guardian.llm import OpenAiLlmClient
+from ux_guardian.report.assets import upload_evidence
 from ux_guardian.report.models import Affected, Report
 from ux_guardian.run import checks_report, enrich_findings, live_checks, write_report
 from ux_guardian.security import redact
@@ -78,7 +79,7 @@ async def add_agents(
         if verdict == Verdict.CANDIDATE:
             report.flaky.append(
                 f"{journey.name}: Agent-only failure needs confirmation. "
-                f"{preview.observed_problem} Replay: {preview.replay_url or 'unavailable'}"
+                f"{preview.observed_problem}"
             )
         elif verdict == Verdict.PREEXISTING:
             report.preexisting.append(f"{journey.name}: Agent failed on preview and production.")
@@ -191,6 +192,8 @@ async def ci_pipeline(
             except Exception:
                 pass
     report.duration_seconds = round(monotonic() - started, 2)
+    if run_id:
+        report.asset_urls = await upload_evidence(report, github, run_id=run_id, output=output)
     write_report(report, output)
     body = (output / "report.md").read_text(encoding="utf-8")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")

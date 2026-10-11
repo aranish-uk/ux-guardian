@@ -19,7 +19,7 @@
 
 | Preview | Production |
 | --- | --- |
-| ![Preview](artifacts/m3-broken-cart/screenshots/checkout-preview-desktop.png) | ![Production](artifacts/m3-broken-cart/screenshots/checkout-prod-desktop.png) |
+| <img width="260" alt="Preview" src="artifacts/m3-broken-cart/screenshots/checkout-preview-desktop.png"> | <img width="260" alt="Production" src="artifacts/m3-broken-cart/screenshots/checkout-prod-desktop.png"> |
 
 **Evidence**
 
@@ -37,6 +37,13 @@
 Fix suggestion unavailable
 
 </details>
+
+### TinyFish agent journeys (desktop)
+
+| Journey | Env | Result | Steps | Cost | Final step | Run ID |
+| --- | --- | --- | --- | --- | --- | --- |
+
+No desktop agent journeys were run.
 
 <details>
 <summary>Pre-existing issues (0)</summary>

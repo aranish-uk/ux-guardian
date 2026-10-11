@@ -19,7 +19,7 @@
 
 | Preview | Production |
 | --- | --- |
-| ![Preview](artifacts\m2-mobile-overlay\screenshots\sign-in-preview-mobile.png) | ![Production](artifacts\m2-mobile-overlay\screenshots\sign-in-prod-mobile.png) |
+| <img width="260" alt="Preview" src="artifacts\m2-mobile-overlay\screenshots\sign-in-preview-mobile.png"> | <img width="260" alt="Production" src="artifacts\m2-mobile-overlay\screenshots\sign-in-prod-mobile.png"> |
 
 **Evidence**
 
@@ -30,6 +30,13 @@
 Fix suggestion unavailable
 
 </details>
+
+### TinyFish agent journeys (desktop)
+
+| Journey | Env | Result | Steps | Cost | Final step | Run ID |
+| --- | --- | --- | --- | --- | --- | --- |
+
+No desktop agent journeys were run.
 
 <details>
 <summary>Pre-existing issues (0)</summary>
