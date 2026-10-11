@@ -1,5 +1,6 @@
 """Deterministic FR10 markdown from saved evidence, never from a new agent run."""
 
+import re
 from html import escape
 
 from ux_guardian.report.models import Report
@@ -117,7 +118,18 @@ def render(report: Report) -> str:
         ("Improved", report.improved),
     ]:
         lines += ["<details>", f"<summary>{title} ({len(items)})</summary>", ""]
-        lines += [f"- {cell(item)}" for item in items] if items else ["None."]
+        for item in items:
+            lines.append(f"- {cell(item)}")
+            if title == "Flaky / needs human look":
+                for run in report.runs:
+                    name = names.get(run.journey_id, run.journey_id)
+                    if (run.env == "preview" and not run.passed and run.steps
+                            and (item.startswith(name + ":") or item.startswith(name + " ("))):
+                        source = run.steps[-1].screenshot_path
+                        if source in report.asset_urls:
+                            lines += ["", screenshot(source, "Final step", report, width=220), ""]
+        if not items:
+            lines.append("None.")
         lines += ["", "</details>", ""]
     lines += [
         "Re-run: dispatch the UX Guardian workflow with the PR number and preview URL. "
@@ -129,7 +141,17 @@ def render(report: Report) -> str:
     ]
     if report.artifact_url:
         lines += [f"[Full evidence (zip)]({report.artifact_url})", ""]
-    return "\n".join(lines)
+    markdown = "\n".join(lines)
+    # Old artifacts and free-form agent/LLM text may contain live URLs too.
+    # This boundary also protects report.md, PR comments and the step summary.
+    for url in {r.replay_url for r in report.runs} | {f.replay_url for f in report.findings}:
+        if url:
+            markdown = markdown.replace(escape(url), "").replace(url, "")
+    markdown = re.sub(
+        r"https?://[^\s<>\"'()]*tinyfish\.io\b[^\s<>\"'()]*", "", markdown,
+        flags=re.IGNORECASE,
+    )
+    return re.sub(r"Replay:[ \t]*(?=\n|$)", "", markdown, flags=re.IGNORECASE)
 
 
 def screenshot(source: str, label: str, report: Report, *, width: int = 260) -> str:

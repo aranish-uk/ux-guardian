@@ -1,4 +1,4 @@
-from pydantic import Field
+from pydantic import AliasChoices, Field
 
 from ux_guardian.agents.base import AgentRun, Contract
 from ux_guardian.checks.models import CheckResult, FetchResult
@@ -30,7 +30,14 @@ class Finding(Contract):
     prod_screenshot: str = ""
     evidence: list[str]
     fix_suggestion: str
-    replay_url: str = ""
+    replay_url: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "replay_url", "replayUrl", "streaming_url", "live_stream_url_expired_after_run"
+        ),
+        serialization_alias="live_stream_url_expired_after_run",
+        description="Legacy live-stream metadata only; never render in reports.",
+    )
 
 
 class Cost(Contract):

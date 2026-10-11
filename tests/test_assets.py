@@ -32,6 +32,40 @@ def evidence(tmp_path):
     return report
 
 
+@pytest.mark.parametrize("hosted", [False, True])
+def test_live_stream_never_appears_in_rendered_report(tmp_path, hosted):
+    from ux_guardian.run import write_report
+
+    report = evidence(tmp_path)
+    streaming_url = "https://recorded.production.tinyfish.io/run/stream/0"
+    report.runs[0] = report.runs[0].model_validate({
+        **report.runs[0].model_dump(exclude={"replay_url"}),
+        "streaming_url": streaming_url,
+    })
+    run = report.runs[0]
+    run.completed = False
+    report.findings[0].replay_url = streaming_url
+    name = next(a.name for a in report.affected if a.journey_id == run.journey_id)
+    report.flaky = [f"{name}: Agent-only failure needs confirmation. Replay: {streaming_url}"]
+    report.findings[0].evidence.append(f"Live stream: {streaming_url}")
+    report.findings[0].fix_suggestion += f"\n[Stream]({streaming_url})"
+    source = run.steps[-1].screenshot_path
+    url = "https://raw.githubusercontent.com/o/r/ux-guardian-assets/pr-42/run-123/agent/final.jpg"
+    report.asset_urls = {source: url} if hosted else {}
+
+    body = render(report)
+    assert "tinyfish.io" not in body
+    assert "Replay:" not in body
+    flaky = body.split("<summary>Flaky / needs human look", 1)[1].split("</details>", 1)[0]
+    assert (url in flaky) == hosted
+    write_report(report, tmp_path)
+    assert (tmp_path / "report.md").read_text("utf-8") == body
+    saved = json.loads((tmp_path / "report.json").read_text("utf-8"))
+    assert saved["runs"][0]["live_stream_url_expired_after_run"] == streaming_url
+    assert "replayUrl" not in saved["runs"][0]
+    assert render(Report.model_validate(saved)) == body
+
+
 @pytest.mark.parametrize("existing", [False, True])
 def test_upload_sequence_and_inline_urls(tmp_path, existing):
     from ux_guardian.report.assets import upload_evidence

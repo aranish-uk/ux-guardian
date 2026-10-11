@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 from ux_guardian.config import Environment, Journey, Viewport
@@ -28,7 +28,14 @@ class AgentRun(Contract):
     blocked_at_step: int | None = None
     observed_problem: str = ""
     steps: list[Step] = Field(default_factory=list)
-    replay_url: str = ""
+    replay_url: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "replay_url", "replayUrl", "streaming_url", "live_stream_url_expired_after_run"
+        ),
+        serialization_alias="live_stream_url_expired_after_run",
+        description="Live stream only; expires when the run ends. Never render in reports.",
+    )
     cost_usd: float = Field(default=0, ge=0)
     attempt: int = Field(default=1, ge=1, le=2)
 

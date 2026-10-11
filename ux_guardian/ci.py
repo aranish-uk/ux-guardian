@@ -89,7 +89,6 @@ async def add_agents(
             )
         for finding in report.findings:
             if finding.journey_id == journey.id:
-                finding.replay_url = preview.replay_url
                 if not preview.passed and preview.steps:
                     finding.repro_steps = [
                         f"{step.action}: {step.observation}" for step in preview.steps

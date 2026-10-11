@@ -101,11 +101,14 @@ def test_ci_runs_selected_fixture_checks_and_publishes(monkeypatch, tmp_path, up
             path = directory / f"{check.env}-{check.viewport}.png"
             path.write_bytes(b"fixture-png")
             check.screenshot_path = str(path)
-        return ci.checks_report(
+        report = ci.checks_report(
             config=config, journeys=journeys,
             checks=recorded,
             fetch=saved.fetch,
         )
+        report.findings[0].replay_url = "https://recorded.tinyfish.io/run/stream/0"
+        report.flaky.append("Legacy evidence. Replay: https://recorded.tinyfish.io/run/stream/0")
+        return report
 
     def handle(request):
         if "/git/" in request.url.path:
@@ -145,6 +148,8 @@ def test_ci_runs_selected_fixture_checks_and_publishes(monkeypatch, tmp_path, up
     assert len(report.findings) == 1 and report.findings[0].severity == "P1"
     assert not report.runs and not report.fixture
     body = published[0]
+    assert "tinyfish.io" not in body
+    assert "Replay:" not in body
     assert "1 confirmed regression\n" in body
     assert "1 confirmed regressions" not in body
     assert "actions/runs/123#artifacts" in body

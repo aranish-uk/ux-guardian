@@ -459,3 +459,19 @@ passed. Mocked transport covers orphan creation and existing branch updates,
 blob/tree/commit/ref failures and transport errors, missing/outside files, final
 Agent screenshot selection, URL rendering, snapshots, saved JSON reproduction,
 and CI publication after successful or failed uploads. No live calls or pushes.
+
+## Report fix — expiring live streams
+
+2026-10-11, `feat/assets`. Removed CI's assignment of the Agent live stream to
+findings. Saved stream fields serialize only as
+`live_stream_url_expired_after_run`, with legacy JSON aliases accepted for replay.
+The renderer strips known live streams and TinyFish stream URLs embedded in old
+free-form evidence, protecting PR comments, report.md and the shared step summary.
+Flaky entries include their preview Agent's hosted final-step screenshot when
+available. The live journey CLI output remains available.
+
+Verified on Windows: `uv run pytest -q` **226 passed, 11 local-demo tests skipped**;
+`uv run ruff check .` passed; `uv run pyright` zero errors. Tests cover streaming_url
+input, expired metadata serialization and saved-report reproduction, URLs in
+flaky/evidence/fix text, hosted screenshot availability, and identical sanitized
+PR comment/report.md/step summary output. No live calls or pushes.
