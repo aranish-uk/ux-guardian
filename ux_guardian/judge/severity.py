@@ -8,6 +8,7 @@ class Severity(StrEnum):
 
 
 def assign_severity(*, hard_error: bool, blocked_viewports: int, total_viewports: int) -> Severity:
+    """hard_error means an origin 4xx/5xx; selector failures count by viewport."""
     if total_viewports < 1 or not 0 <= blocked_viewports <= total_viewports:
         raise ValueError("Invalid viewport counts")
     if hard_error or blocked_viewports == total_viewports:

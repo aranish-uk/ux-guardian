@@ -1,0 +1,400 @@
+{
+  "pr": 1,
+  "sha": "local",
+  "previewUrl": "https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app",
+  "prodUrl": "https://ux-guardian-demo.vercel.app",
+  "durationSeconds": 52.75,
+  "fixture": false,
+  "affected": [
+    {
+      "journeyId": "sign-in",
+      "name": "Sign in with test account",
+      "reason": "All configured journeys (M2 entry checks)",
+      "source": "fixture"
+    },
+    {
+      "journeyId": "search-cart",
+      "name": "Search \u2192 product \u2192 add to cart",
+      "reason": "All configured journeys (M2 entry checks)",
+      "source": "fixture"
+    },
+    {
+      "journeyId": "checkout",
+      "name": "Checkout to payment step",
+      "reason": "All configured journeys (M2 entry checks)",
+      "source": "fixture"
+    }
+  ],
+  "runs": [],
+  "checks": [],
+  "findings": [],
+  "preexisting": [],
+  "flaky": [],
+  "improved": [],
+  "cost": {
+    "agentUsd": 0.0,
+    "fetchUsd": 0.0,
+    "searchUsd": 0.0,
+    "totalUsd": 0.0
+  },
+  "checkResults": [
+    {
+      "journeyId": "sign-in",
+      "env": "preview",
+      "viewport": "desktop",
+      "url": "https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/login",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "blockingConsoleErrors": [],
+      "failedRequests": [],
+      "selectors": [
+        {
+          "selector": "button[type=submit]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "receivesEvents": true
+        }
+      ],
+      "screenshotPath": "artifacts\\m2-clean\\screenshots\\sign-in-preview-desktop.png",
+      "navigationError": "",
+      "pixelDiffPath": "artifacts\\m2-clean\\screenshots\\sign-in-desktop-diff.png",
+      "pixelDiffCount": 0
+    },
+    {
+      "journeyId": "sign-in",
+      "env": "prod",
+      "viewport": "desktop",
+      "url": "https://ux-guardian-demo.vercel.app/login",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "blockingConsoleErrors": [],
+      "failedRequests": [
+        "GET https://ux-guardian-demo.vercel.app/search: net::ERR_ABORTED"
+      ],
+      "selectors": [
+        {
+          "selector": "button[type=submit]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "receivesEvents": true
+        }
+      ],
+      "screenshotPath": "artifacts\\m2-clean\\screenshots\\sign-in-prod-desktop.png",
+      "navigationError": "",
+      "pixelDiffPath": "",
+      "pixelDiffCount": null
+    },
+    {
+      "journeyId": "sign-in",
+      "env": "preview",
+      "viewport": "mobile",
+      "url": "https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/login",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "blockingConsoleErrors": [],
+      "failedRequests": [
+        "GET https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/.well-known/vercel/jwe: net::ERR_ABORTED",
+        "OPTIONS https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/: net::ERR_ABORTED",
+        "HEAD https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/login: net::ERR_ABORTED"
+      ],
+      "selectors": [
+        {
+          "selector": "button[type=submit]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "receivesEvents": true
+        }
+      ],
+      "screenshotPath": "artifacts\\m2-clean\\screenshots\\sign-in-preview-mobile.png",
+      "navigationError": "",
+      "pixelDiffPath": "artifacts\\m2-clean\\screenshots\\sign-in-mobile-diff.png",
+      "pixelDiffCount": 9437
+    },
+    {
+      "journeyId": "sign-in",
+      "env": "prod",
+      "viewport": "mobile",
+      "url": "https://ux-guardian-demo.vercel.app/login",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "blockingConsoleErrors": [],
+      "failedRequests": [],
+      "selectors": [
+        {
+          "selector": "button[type=submit]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "receivesEvents": true
+        }
+      ],
+      "screenshotPath": "artifacts\\m2-clean\\screenshots\\sign-in-prod-mobile.png",
+      "navigationError": "",
+      "pixelDiffPath": "",
+      "pixelDiffCount": null
+    },
+    {
+      "journeyId": "search-cart",
+      "env": "preview",
+      "viewport": "desktop",
+      "url": "https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/search",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "blockingConsoleErrors": [],
+      "failedRequests": [
+        "GET https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/products/everyday-tote: net::ERR_ABORTED",
+        "GET https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/products/ceramic-cup: net::ERR_ABORTED"
+      ],
+      "selectors": [
+        {
+          "selector": "input[type=search]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "receivesEvents": true
+        }
+      ],
+      "screenshotPath": "artifacts\\m2-clean\\screenshots\\search-cart-preview-desktop.png",
+      "navigationError": "",
+      "pixelDiffPath": "artifacts\\m2-clean\\screenshots\\search-cart-desktop-diff.png",
+      "pixelDiffCount": 0
+    },
+    {
+      "journeyId": "search-cart",
+      "env": "prod",
+      "viewport": "desktop",
+      "url": "https://ux-guardian-demo.vercel.app/search",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "blockingConsoleErrors": [],
+      "failedRequests": [
+        "GET https://ux-guardian-demo.vercel.app/products/pocket-notebook: net::ERR_ABORTED"
+      ],
+      "selectors": [
+        {
+          "selector": "input[type=search]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "receivesEvents": true
+        }
+      ],
+      "screenshotPath": "artifacts\\m2-clean\\screenshots\\search-cart-prod-desktop.png",
+      "navigationError": "",
+      "pixelDiffPath": "",
+      "pixelDiffCount": null
+    },
+    {
+      "journeyId": "search-cart",
+      "env": "preview",
+      "viewport": "mobile",
+      "url": "https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/search",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "blockingConsoleErrors": [],
+      "failedRequests": [
+        "GET https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/.well-known/vercel/jwe: net::ERR_ABORTED",
+        "GET https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/products/everyday-tote: net::ERR_ABORTED",
+        "OPTIONS https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/: net::ERR_ABORTED",
+        "HEAD https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/search: net::ERR_ABORTED"
+      ],
+      "selectors": [
+        {
+          "selector": "input[type=search]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "receivesEvents": true
+        }
+      ],
+      "screenshotPath": "artifacts\\m2-clean\\screenshots\\search-cart-preview-mobile.png",
+      "navigationError": "",
+      "pixelDiffPath": "artifacts\\m2-clean\\screenshots\\search-cart-mobile-diff.png",
+      "pixelDiffCount": 7889
+    },
+    {
+      "journeyId": "search-cart",
+      "env": "prod",
+      "viewport": "mobile",
+      "url": "https://ux-guardian-demo.vercel.app/search",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "blockingConsoleErrors": [],
+      "failedRequests": [
+        "GET https://ux-guardian-demo.vercel.app/login: net::ERR_ABORTED"
+      ],
+      "selectors": [
+        {
+          "selector": "input[type=search]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "receivesEvents": true
+        }
+      ],
+      "screenshotPath": "artifacts\\m2-clean\\screenshots\\search-cart-prod-mobile.png",
+      "navigationError": "",
+      "pixelDiffPath": "",
+      "pixelDiffCount": null
+    },
+    {
+      "journeyId": "checkout",
+      "env": "preview",
+      "viewport": "desktop",
+      "url": "https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/cart",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "blockingConsoleErrors": [],
+      "failedRequests": [
+        "GET https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/login: net::ERR_ABORTED",
+        "GET https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/products/everyday-tote: net::ERR_ABORTED"
+      ],
+      "selectors": [
+        {
+          "selector": "a[href=\"/checkout\"]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "receivesEvents": true
+        }
+      ],
+      "screenshotPath": "artifacts\\m2-clean\\screenshots\\checkout-preview-desktop.png",
+      "navigationError": "",
+      "pixelDiffPath": "artifacts\\m2-clean\\screenshots\\checkout-desktop-diff.png",
+      "pixelDiffCount": 0
+    },
+    {
+      "journeyId": "checkout",
+      "env": "prod",
+      "viewport": "desktop",
+      "url": "https://ux-guardian-demo.vercel.app/cart",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "blockingConsoleErrors": [],
+      "failedRequests": [
+        "GET https://ux-guardian-demo.vercel.app/search: net::ERR_ABORTED"
+      ],
+      "selectors": [
+        {
+          "selector": "a[href=\"/checkout\"]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "receivesEvents": true
+        }
+      ],
+      "screenshotPath": "artifacts\\m2-clean\\screenshots\\checkout-prod-desktop.png",
+      "navigationError": "",
+      "pixelDiffPath": "",
+      "pixelDiffCount": null
+    },
+    {
+      "journeyId": "checkout",
+      "env": "preview",
+      "viewport": "mobile",
+      "url": "https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/cart",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "blockingConsoleErrors": [],
+      "failedRequests": [
+        "GET https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/login: net::ERR_ABORTED",
+        "GET https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/.well-known/vercel/jwe: net::ERR_ABORTED",
+        "OPTIONS https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/: net::ERR_ABORTED",
+        "HEAD https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/cart: net::ERR_ABORTED"
+      ],
+      "selectors": [
+        {
+          "selector": "a[href=\"/checkout\"]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "receivesEvents": true
+        }
+      ],
+      "screenshotPath": "artifacts\\m2-clean\\screenshots\\checkout-preview-mobile.png",
+      "navigationError": "",
+      "pixelDiffPath": "artifacts\\m2-clean\\screenshots\\checkout-mobile-diff.png",
+      "pixelDiffCount": 9383
+    },
+    {
+      "journeyId": "checkout",
+      "env": "prod",
+      "viewport": "mobile",
+      "url": "https://ux-guardian-demo.vercel.app/cart",
+      "httpStatus": 200,
+      "consoleErrors": [],
+      "blockingConsoleErrors": [],
+      "failedRequests": [],
+      "selectors": [
+        {
+          "selector": "a[href=\"/checkout\"]",
+          "present": true,
+          "visible": true,
+          "enabled": true,
+          "receivesEvents": true
+        }
+      ],
+      "screenshotPath": "artifacts\\m2-clean\\screenshots\\checkout-prod-mobile.png",
+      "navigationError": "",
+      "pixelDiffPath": "",
+      "pixelDiffCount": null
+    }
+  ],
+  "fetch": {
+    "pages": [
+      {
+        "journeyId": "sign-in",
+        "env": "preview",
+        "url": "https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/login",
+        "text": "everyday\n\u00ae\nShop\nSign in\nCart \u2197\nGOOD TO SEE YOU\nWelcome back.\nSign in to your everyday account.\nEmail\nPassword\nSign in",
+        "error": "",
+        "httpStatus": null
+      },
+      {
+        "journeyId": "sign-in",
+        "env": "prod",
+        "url": "https://ux-guardian-demo.vercel.app/login",
+        "text": "everyday\n\u00ae\nShop\nSign in\nCart \u2197\nGOOD TO SEE YOU\nWelcome back.\nSign in to your everyday account.\nEmail\nPassword\nSign in",
+        "error": "",
+        "httpStatus": null
+      },
+      {
+        "journeyId": "search-cart",
+        "env": "preview",
+        "url": "https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/search",
+        "text": "everyday\n\u00ae\nShop\nSign in\nCart \u2197\nTHE COLLECTION\nFind your everyday.\nSearch products\nSearch\n\u25e7\nEveryday tote\n$28\nCarry\n\u25e1\nCeramic cup\n$18\nHome\n\u25a4\nPocket notebook\n$12\nDesk",
+        "error": "",
+        "httpStatus": null
+      },
+      {
+        "journeyId": "search-cart",
+        "env": "prod",
+        "url": "https://ux-guardian-demo.vercel.app/search",
+        "text": "everyday\n\u00ae\nShop\nSign in\nCart \u2197\nTHE COLLECTION\nFind your everyday.\nSearch products\nSearch\n\u25e7\nEveryday tote\n$28\nCarry\n\u25e1\nCeramic cup\n$18\nHome\n\u25a4\nPocket notebook\n$12\nDesk",
+        "error": "",
+        "httpStatus": null
+      },
+      {
+        "journeyId": "checkout",
+        "env": "preview",
+        "url": "https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app/cart",
+        "text": "everyday\n\u00ae\nShop\nSign in\nCart \u2197\nONE STEP CLOSER\nYour cart\nYour cart is empty.\nFind an Everyday tote\n.\nCheckout",
+        "error": "",
+        "httpStatus": null
+      },
+      {
+        "journeyId": "checkout",
+        "env": "prod",
+        "url": "https://ux-guardian-demo.vercel.app/cart",
+        "text": "everyday\n\u00ae\nShop\nSign in\nCart \u2197\nONE STEP CLOSER\nYour cart\nYour cart is empty.\nFind an Everyday tote\n.\nCheckout",
+        "error": "",
+        "httpStatus": null
+      }
+    ],
+    "flags": [],
+    "serviceError": ""
+  }
+}

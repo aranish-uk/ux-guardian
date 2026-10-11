@@ -2,9 +2,9 @@
 
 CodeRabbit reviews your code. TinyFish reviews your user experience.
 
-M0 establishes the Python foundation and a three-journey demo storefront.
-Live TinyFish integration begins in M1; signal acquisition, diff intelligence,
-GitHub reporting and enrichment follow in M2–M5. See [PRD.md](PRD.md) and
+M0–M2 provide the demo storefront, desktop TinyFish Agent adapter, desktop/mobile
+Playwright checks, free Fetch pre-check and comparative judge. Diff intelligence,
+GitHub publishing and enrichment follow in M3–M5. See [PRD.md](PRD.md) and
 [PROGRESS.md](PROGRESS.md) for scope and verified status.
 
 ## Development
@@ -29,19 +29,46 @@ On Linux, install Chromium's OS dependencies with
 uv run ux-guardian run --preview-url https://preview.example.invalid --pr 1 --dry-run
 ```
 
-Writes `artifacts/report.json` and `artifacts/report.md`. Evidence is a **synthetic
-contract fixture**, not a live recording. The supplied URL is never contacted;
-no SDK is instantiated, no credentials are needed and no TinyFish cost is incurred.
-M0 does not yet acquire evidence or publish a PR comment. The fixture report
-is reproducible offline and its markdown layout has a snapshot test.
+Writes `artifacts/report.json` and `artifacts/report.md` from the recorded M2
+mobile-overlay comparison. The supplied URL is never contacted. No credentials
+or network are needed; the judge recomputes the finding from saved signals.
+Replay the clean comparison with:
+
+```text
+uv run ux-guardian run --preview-url https://offline.invalid --pr 1 --dry-run --checks-fixture ux_guardian/fixtures/m2_clean.json
+```
+
+## Live checks (M2)
+
+```text
+uv run ux-guardian live checks --env both
+uv run ux-guardian live checks --env both --preview-url https://ux-guardian-demo-fj66mu9nm-aranish-uk.vercel.app --output artifacts/m2-overlay
+```
+
+The first command uses the clean `preview_url` and `production_url` from config.
+The second uses the seeded overlay preview. `--env prod` or `--env preview`
+acquires one environment only and cannot confirm a comparative finding.
+Each run sends one Fetch markdown batch containing the six entry URLs and
+checks all three entry pages on desktop and iPhone 13 mobile, with configured
+dimensions. Set `TINYFISH_API_KEY` in the environment or ignored `.env` for Fetch.
+No Agent runs, credentials in forms, payments, or PR publishing are involved.
+Full-page screenshots, padded pixel diffs and reports stay under `artifacts/`.
+Pixel differences and Fetch text warnings are evidence only.
+
+A critical control failing only on preview confirms a finding immediately.
+Mobile-only blockers are P1; blockers on both viewports or origin 4xx/5xx are P0.
+Trial clicks detect overlays without clicking or submitting. Console errors are
+considered blocking by acquisition only when a critical control is also blocked;
+console noise and failed requests alone do not confirm a finding. These checks
+cover entry pages and controls, not complete authenticated journeys.
 
 ```text
 uv run ux-guardian live journey --journey sign-in --env prod
 ```
 
-This reserved paid-run command shows the maximum step-cost estimate and asks
-for confirmation. In M0 it then exits explicitly without a live call. The working
-TinyFish adapter is M1. An estimate above the configured budget is rejected.
+This separate M1 command estimates paid Agent steps and asks for confirmation.
+Agents are desktop-only because the API has no viewport control. An estimate
+above the configured budget is rejected.
 The optional `uv run ux-guardian-mcp` exposes fixture-only `start` and `results`
 tools; it cannot launch a paid agent.
 
@@ -86,18 +113,12 @@ signed expiring HttpOnly cookies. This is not a general-purpose account system.
 
 ## Vercel handoff
 
-No Vercel token or saved login was available during initial implementation.
-Authenticate locally with `pnpm dlx vercel@63.1.2 login`, then link a dedicated
-`ux-guardian-demo` project from `demo-app/`. For Git integration, select `demo-app`
-as the project's Root Directory. Configure `TEST_EMAIL` and `TEST_PASSWORD` as
-Vercel secrets for both Preview and Production; keep them out of build arguments.
-
-Inspect the linked project before deploying. Deploy the verified source once as
-preview and once as production. Preview must be publicly reachable by TinyFish:
-PRD section 13 permits disabling protection on this demo project. Set the verified
-production URL in `.ux-guardian/config.yaml` and record both real URLs in
-`PROGRESS.md`. The current localhost URL is explicitly a local placeholder.
-M0 remains incomplete until both hosted URLs load.
+The hosted demo and clean preview are configured in `.ux-guardian/config.yaml`.
+The seeded regression is on `demo/mobile-signin-overlay`, based on `feat/m0`,
+with its preview URL and verification recorded in [PROGRESS.md](PROGRESS.md).
+The project Root Directory is `demo-app`; a linked branch worktree deploys
+from its repository root with `npx vercel@63.1.2 deploy` (preview target).
+Use Vercel Preview environment secrets; do not promote the regression to production.
 
 ## Attribution
 

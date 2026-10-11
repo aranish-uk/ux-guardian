@@ -53,6 +53,7 @@ class Journey(BaseModel):
 class Config(BaseModel):
     model_config = ConfigDict(extra="forbid")
     production_url: str = "http://localhost:3000"
+    preview_url: str = "http://localhost:3001"
     viewports: dict[Viewport, dict[str, int]] = Field(
         default_factory=lambda: {
             "desktop": {"width": 1440, "height": 900},
@@ -70,6 +71,7 @@ class Config(BaseModel):
     max_duration_seconds: int = Field(default=300, ge=1, le=300)
 
     _url = field_validator("production_url")(validate_url)
+    _preview_url = field_validator("preview_url")(validate_url)
 
 
 class Manifest(BaseModel):

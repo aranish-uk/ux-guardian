@@ -129,3 +129,91 @@ Validation: `uv run pytest`, `uv run ruff check .`, and `uv run pyright` pass
 Existing judge truth-table/severity tests and FR10 report snapshot remain green. Local demo browser tests are skipped by
 ordinary pytest unless the demo harness is running; M1 adds no browser scripts.
 No push was performed; M2–M6 remain out of this commit.
+
+
+## M2 — deterministic desktop/mobile checks, Fetch and comparative judge
+
+2026-10-11, branch `feat/m2` created from `feat/m1`.
+
+Decision: TinyFish Agents remain desktop-only because the API has no viewport
+control. Playwright owns both desktop (1440 × 900) and mobile (iPhone 13 descriptor,
+configured 390 × 844) for every journey's entry page and critical controls.
+FR5, FR6, FR7, the section 9 viewport swap row and the dated PRD Decision log now
+reflect this; FR4, FR8 and the Agent cost example were aligned as well.
+
+Implemented and verified:
+
+- Playwright records origin HTTP status, console/page errors, failed requests,
+  selector presence/visibility/enabled state and trial-click actionability.
+  Trial clicks detect overlays without submitting forms or navigating. Each
+  journey/environment/viewport has a full-page PNG; pixelmatch + Pillow pads
+  unequal page sizes and writes a diff PNG and pixel count as evidence only.
+- Fetch makes one `POST https://api.fetch.tinyfish.ai` batch per live command,
+  using `X-API-Key`, markdown and `ttl: 0`. Both live comparisons returned all
+  six entry pages with no Fetch flags. Exactly two free batch calls (12 entry
+  URLs total) were made; no Agent runs or paid steps were started.
+  Per-URL extraction errors, near-empty text (<40 characters) and missing
+  success-criteria text are advisory. Only structured origin HTTP errors count
+  as hard signals; service/auth/quota/transport errors cannot confirm findings.
+  The documented results[]/errors[] contract is covered by mocked transports;
+  successful Fetch results establish a fetched baseline without inventing an
+  exact origin HTTP status. No redirects forward the API key and no retries
+  multiply live calls.
+- Pure judge functions cover all four rows for deterministic-only mobile and
+  Agent-only desktop paths. Preview-only hard signals confirm without Agents.
+  Controls are compared against the same observed prod control; unknown or
+  failed baselines do not establish a pass. Agent-only candidates still need
+  a second preview attempt failing at the same/earlier step or a new hard signal.
+  Tests cover absent/hidden/disabled/covered controls, HTTP status, blocking
+  console errors, pre-existing failures, improvement, noisy console errors,
+  failed requests, pixel changes and unknown navigation baselines.
+- Severity aggregation: a control blocker on one viewport is P1; blockers on
+  both viewports or an origin 4xx/5xx are P0. Console errors are marked blocking
+  by acquisition only when critical-control checks independently show blockage;
+  arbitrary console errors alone remain evidence. These are entry-page checks,
+  not a claim that complete authenticated journeys were executed.
+
+Real deployment comparisons:
+
+- Production (unchanged): https://ux-guardian-demo.vercel.app
+- Clean preview (config default):
+  https://ux-guardian-demo-f4vlvs23b-aranish-uk.vercel.app
+- Seeded preview:
+  https://ux-guardian-demo-fj66mu9nm-aranish-uk.vercel.app
+- `demo/mobile-signin-overlay` was created from `feat/m0` in the ignored
+  `.worktrees/mobile-signin` worktree. Commit `243e847` adds an overlay on the
+  sign-in submit button only below 640px. Deployed from that branch using
+  `npx vercel@63.1.2 deploy --yes`; deployment
+  `dpl_7TvnwQ8AD5t7jsXiKbpgBWAZkJ16` reached READY with Preview target and no
+  production URL. No production deployment/promotion or configuration change
+  was performed.
+- `uv run ux-guardian live checks --env both --output artifacts/m2-clean`:
+  **12 PASS checks, zero findings**, 52.75 seconds, TinyFish $0.00.
+- `uv run ux-guardian live checks --env both --preview-url
+  https://ux-guardian-demo-fj66mu9nm-aranish-uk.vercel.app --output
+  artifacts/m2-mobile-overlay`: **one confirmed P1 mobile sign-in finding**,
+  11 PASS checks and the preview/mobile sign-in FAIL, 53.17 seconds, TinyFish
+  $0.00. The control was present, visible and enabled but could not receive
+  input; production/mobile and preview/desktop passed. All search/cart and
+  checkout entry controls passed. Screenshot inspection confirms the covering
+  overlay and blank credential fields.
+- Reports recorded as `ux_guardian/fixtures/m2_clean.json` and
+  `ux_guardian/fixtures/m2_mobile_overlay.json`, with FR10 Markdown snapshots.
+  Screenshots and diff PNGs remain under ignored `artifacts/m2-*` directories.
+  Nonzero mobile pixel diffs also occur on the clean preview (preview toolbar);
+  they correctly produce zero findings.
+- `run --dry-run` defaults to the recorded overlay evidence; `--checks-fixture`
+  selects another saved report. Tests replay both recordings with acquisition
+  functions disabled, recomputing findings without Agents or any API call.
+  The legacy M0 synthetic report snapshot/retry tests remain green.
+
+Validation on Windows: `uv run pytest` **91 passed, 11 local-demo harness tests
+skipped**; `uv run ruff check .` passes; `uv run pyright` zero errors. A network-free
+inline-HTML Chromium test proves overlays fail actionability despite visible,
+enabled controls and proves trial checks never invoke click handlers. CI now
+installs Chromium and Linux browser dependencies before pytest. Linux was not
+executed on this Windows box; the existing Windows/Ubuntu matrix verifies it
+when pushed. A CLI dry-run smoke and `git diff --check` also pass.
+
+M2 acceptance is complete. No push, PR publishing, Agent call, payment submission
+or production modification was performed. M3–M6 remain out of scope.

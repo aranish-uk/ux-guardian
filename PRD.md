@@ -20,7 +20,7 @@ Code review catches code problems. It does not catch "the login button no longer
 UX Guardian runs on every PR that has a preview deployment. It:
 
 1. **Analyzes the diff** to decide which user journeys could be affected.
-2. **Sends TinyFish agents through those journeys like a real customer**, on both the preview and production, in parallel.
+2. **Sends TinyFish agents through those journeys like a real customer**, on both the preview and production at the Agent API's default desktop viewport, in parallel.
 3. **Runs deterministic Playwright checks** on the same pages.
 4. **Confirms regressions.** A failure only counts if it happens on preview, does not happen on production, and reproduces on a retry or is backed by a deterministic signal.
 5. **Posts one PR comment**, updated in place, with repro steps, severity, before/after screenshots and a fix suggestion.
@@ -95,8 +95,8 @@ GitHub Actions: wait for preview (deployment_status: success)
 [4] Judge: compare preview vs prod per journey → candidate regressions
         │
         ▼
-[5] Confirm: re-run failing preview journey once; confirmed if it fails again
-    OR a deterministic Playwright signal agrees
+[5] Confirm: a preview-only deterministic hard signal is confirmed immediately;
+    agent-only candidates need a retry at the same/earlier step or a matching hard signal
         │
         ▼
 [6] Enrich: severity + repro steps + fix suggestion (LLM over diff hunk + evidence;
@@ -154,15 +154,15 @@ Test credentials are injected from Action secrets at runtime and never committed
 ### FR4. Fetch pre-check
 - For each affected journey, fetch `entry_path` on preview and prod in one request (`urls` takes up to 10). Use markdown format.
 - Flag immediately: a fetch error on preview but not prod; empty or near-empty text on preview; or `success_criteria` keywords present on prod and missing on preview.
-- Pre-check flags are evidence only. They feed the judge and never post on their own.
+- Pre-check flags feed the judge and never post on their own. Fetch errors, near-empty text and missing keywords remain advisory; only an explicit non-2xx origin status with a passing prod baseline is a deterministic hard signal. Fetch API authentication, quota and extraction errors are not origin HTTP failures.
 
 ### FR5. Playwright deterministic checks
-- Run headless Chromium on the runner for each affected journey's entry page, on preview and prod, at the configured viewports.
-- Record: HTTP status, console errors, failed network requests, whether each `critical_selector` is present, visible and enabled, and a full-page screenshot.
+- Playwright owns desktop and mobile coverage. Run headless Chromium for every affected journey's entry page and critical selectors on preview and prod at **both** desktop and mobile (iPhone 13 device descriptor with configured dimensions), regardless of Agent viewport support.
+- Record: HTTP status, console errors, failed network requests, whether each `critical_selector` is present, visible, enabled and able to receive input (trial actionability detects covering overlays), and a full-page screenshot per (journey, environment, viewport). Never submit forms during these checks.
 - Compute a screenshot pixel diff (pixelmatch) as evidence for the report. It is never a verdict on its own.
 
 ### FR6. TinyFish agent runs
-- One run per (journey × environment × viewport). Submit with `run-async` or `run-batch` and poll `GET /v1/runs/{id}`.
+- Agent runs are **desktop-only**: one run per (journey × environment), at the API's default desktop viewport. TinyFish has no viewport control; reject mobile Agent requests. Playwright owns mobile coverage (FR5). Submit with `run-async` or `run-batch` and poll `GET /v1/runs/{id}`.
 - Respect the account concurrency limit (2 by default) with a client-side queue. Make it configurable.
 - `goal` is the journey goal with `{{BASE_URL}}`, `{{TEST_EMAIL}}` and similar templated in.
 - Prepend this safety preamble to every goal: "Never submit payment, never send messages, never delete data."
@@ -186,18 +186,22 @@ Test credentials are injected from Action secrets at runtime and never committed
 - Hard caps: `max_steps` per journey (default 25), `max_duration_seconds` 300, and a per-PR budget cap (see NFR3).
 
 ### FR7. Judge and confirmation
-For each (journey, viewport), combine the signals:
+For each (journey, viewport), compare equivalent preview and production signals. Agent evidence exists only for desktop; mobile findings can be deterministic-only:
 
 | Preview | Prod | Verdict |
 |---|---|---|
-| fail | pass | **Candidate regression** |
+| fail | pass | **Confirmed** for a deterministic hard signal; otherwise **candidate regression** |
 | fail | fail | Pre-existing issue. Not attributed to the PR; listed in a collapsed "pre-existing" section. |
 | pass | pass | OK |
 | pass | fail | Possible fix. Noted as "improved" in a collapsed section. |
 
-A candidate becomes **confirmed** if either:
-- (a) a second agent run on preview fails at the same or an earlier step, or
-- (b) a deterministic Playwright or Fetch signal agrees: non-2xx status, a critical selector missing or disabled, or a new console error.
+A deterministic Playwright or Fetch hard signal is **confirmed on its own** when it fails on preview and passes on prod. No Agent run or retry is needed. Hard signals: non-2xx origin HTTP status; a critical selector missing, hidden, disabled or covered so it cannot receive input; or a new console error established to block the journey. Compare the same control/error and viewport against prod; transport timeouts are inconclusive. Harmless console errors, failed requests, Fetch text warnings and pixel diffs are evidence only.
+
+Agent-only candidates still require either:
+- (a) a second Agent run on preview failing at the same or an earlier step, or
+- (b) a matching deterministic hard signal with a passing prod baseline.
+
+Do not confirm a preview-only agent failure using a deterministic failure that also exists on prod.
 
 An unconfirmed candidate goes in a collapsed "flaky / needs human look" section with its evidence and is **not** counted as a finding.
 
@@ -208,7 +212,7 @@ An unconfirmed candidate goes in a collapsed "flaky / needs human look" section 
 | P1 | The journey is blocked on one viewport, or needs a non-obvious workaround. | Mobile sign-in button covered by an overlay |
 | P2 | The journey completes but is degraded: an extra step, a misleading message, a new console error with no visible impact. | Error toast on success |
 
-Severity is assigned by rules first: P0 if a deterministic hard error is present; P1 if blocked on a single viewport. The LLM can only **lower** severity, with a justification, never raise it.
+Severity is assigned by rules first: P0 for an origin 4xx/5xx or a hard failure on all viewports; P1 for a hard failure on just one viewport. A selector/actionability failure on mobile alone is P1, even though it is independently confirmed. P2 covers degradation without a blocked journey. The LLM can only **lower** severity, with a justification, never raise it.
 
 ### FR9. Fix suggestions
 - Input: the confirmed finding, the relevant diff hunks (from the files the analyzer linked to the journey), console errors and the agent's `observed_problem`.
@@ -229,12 +233,12 @@ Severity is assigned by rules first: P0 if a deterministic hard error is present
 - Check run conclusion: `failure` if any confirmed P0 (configurable to include P1), otherwise `success`. Never fail the check on unconfirmed findings.
 
 ### FR11. Configuration (`.ux-guardian/config.yaml`)
-`production_url`, `viewports`, `concurrency` (default 2), `budget_usd_per_run` (default 3), `fail_on: [P0]`, `llm_provider`, `llm_model`, `confirm_retries: 1`, `include_fetch_precheck: true`, `include_search: true`.
+`production_url`, `preview_url` (local live-check baseline; the Action overrides it from deployment discovery), `viewports`, `concurrency` (default 2), `budget_usd_per_run` (default 3), `fail_on: [P0]`, `llm_provider`, `llm_model`, `confirm_retries: 1`, `include_fetch_precheck: true`, `include_search: true`.
 
 ## 8. Non-functional requirements
 - **NFR1. Latency:** comment posted within 10 minutes (p50) of the preview being ready, for 3 journeys × 2 environments × 2 viewports.
 - **NFR2. Noise:** zero confirmed findings on the harmless-copy PR (demo c) in 5 out of 5 runs. A false-positive rate above 10% on clean PRs blocks release.
-- **NFR3. Cost:** estimate before running. Step price is $0.016, so 3 journeys × 2 envs × 2 viewports × ~20 steps ≈ $3.84 worst case. Reduce it by running mobile only for journeys with `viewports` containing mobile, and by skipping prod runs when a cached prod baseline for the same prod deploy SHA is under 24h old. Abort new agent runs once `budget_usd_per_run` is reached, and say so in the comment.
+- **NFR3. Cost:** estimate before running. Step price is $0.016, so 3 journeys × 2 envs × ~20 desktop Agent steps ≈ $1.92 before confirmation retries. Playwright desktop/mobile and Fetch have no Agent step cost. Reduce spend by skipping prod Agent runs when a cached prod baseline for the same prod deploy SHA is under 24h old. Abort new agent runs once `budget_usd_per_run` is reached, and say so in the comment.
 - **NFR4. Security:**
   - Secrets (`TINYFISH_API_KEY`, `LLM_API_KEY`, `TEST_EMAIL`, `TEST_PASSWORD`, `GITHUB_TOKEN`) come only from Action secrets.
   - Never log them, and redact them from step logs and screenshots captions.
@@ -263,6 +267,7 @@ It is about 560 lines of Python, and **every browser-use touchpoint is in one fi
 | `browser_use.llm.ChatGoogle` / `UserMessage` for partitioning and summary | A provider-agnostic `LlmClient` (diff analyzer, judge enrichment, fix suggestions) |
 | Semaphore of 10 | Semaphore = TinyFish concurrency (default 2) plus the budget guard |
 | MCP server entry (`vibetest/mcp_server.py`) | Kept as a bonus entry point; the main entry is a GitHub Action plus CLI |
+| Viewport handling | TinyFish Agent uses its default desktop viewport only; Playwright checks every journey on desktop and mobile, including actionability under overlays. |
 | Single URL | Each journey runs on both **preview and prod** and goes through the judge (FR7) |
 
 **Borrowed patterns (reference only, no code copied):**
@@ -365,3 +370,7 @@ class BrowserAgent(Protocol):
 1. LLM provider for the diff analyzer, judge and fixes. The default proposal is to make it configurable and use whichever key the team has. Codex/OpenAI is natural given the dev setup.
 2. Will TinyFish raise the concurrency limit and enable `capture_config` for the hackathon account?
 3. Demo repo visibility: public is assumed, for raw-URL screenshot embedding.
+
+## Decision log
+
+- **2026-10-11 — M2 viewport ownership and deterministic confirmation.** M1 verified that the TinyFish Agent API has no viewport control. Agents remain desktop-only; Playwright checks every journey on desktop and mobile. A preview-only hard deterministic failure confirms a finding without an Agent run. One affected viewport is P1; all viewports or an origin 4xx/5xx is P0. Agent-only failures retain FR7 retry/confirmation requirements. Fetch warnings and pixel differences remain advisory.

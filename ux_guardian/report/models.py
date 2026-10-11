@@ -1,6 +1,7 @@
 from pydantic import Field
 
 from ux_guardian.agents.base import AgentRun, Contract
+from ux_guardian.checks.models import CheckResult, FetchResult
 from ux_guardian.config import Environment, Viewport
 from ux_guardian.judge.severity import Severity
 
@@ -54,3 +55,5 @@ class Report(Contract):
     flaky: list[str] = Field(default_factory=list)
     improved: list[str] = Field(default_factory=list)
     cost: Cost = Field(default_factory=Cost)
+    check_results: list[CheckResult] = Field(default_factory=list)
+    fetch: FetchResult = Field(default_factory=FetchResult)

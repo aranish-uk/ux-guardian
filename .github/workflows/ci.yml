@@ -1,4 +1,4 @@
-name: M0 quality
+name: Quality
 on:
   push:
   pull_request:
@@ -24,12 +24,12 @@ jobs:
         with:
           node-version: '24'
       - run: uv sync --locked
-      - run: uv run pytest
-      - run: uv run ruff check .
-      - run: uv run pyright
       - run: uv run playwright install chromium
       - if: runner.os == 'Linux'
         run: uv run playwright install-deps chromium
+      - run: uv run pytest
+      - run: uv run ruff check .
+      - run: uv run pyright
       - run: pnpm install --frozen-lockfile
         working-directory: demo-app
       - run: pnpm build

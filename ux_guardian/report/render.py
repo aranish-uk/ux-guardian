@@ -24,7 +24,8 @@ def render(report: Report) -> str:
         "",
     ]
     if report.fixture:
-        lines += ["> Synthetic fixture replay — no website was tested and no API was called.", ""]
+        label = "Recorded evidence replay" if report.check_results else "Synthetic fixture replay"
+        lines += [f"> {label} — no website was tested and no API was called.", ""]
     lines += [
         "| Journey | Why tested | Preview desktop | Prod desktop | Preview mobile | Prod mobile |",
         "| --- | --- | --- | --- | --- | --- |",
@@ -42,7 +43,22 @@ def render(report: Report) -> str:
                 for r in report.runs
                 if r.journey_id == affected.journey_id and r.viewport == viewport and r.env == env
             ]
-            values.append("PASS" if runs and runs[0].passed else "FAIL" if runs else "Not run")
+            checks = [
+                c
+                for c in report.check_results
+                if c.journey_id == affected.journey_id and c.viewport == viewport and c.env == env
+            ]
+            values.append(
+                "PASS"
+                if checks and checks[0].passed
+                else "FAIL"
+                if checks
+                else "PASS"
+                if runs and runs[0].passed
+                else "FAIL"
+                if runs
+                else "Not run"
+            )
         lines.append(
             f"| {cell(affected.name)} | {cell(affected.reason)} | " + " | ".join(values) + " |"
         )

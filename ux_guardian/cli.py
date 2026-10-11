@@ -1,14 +1,16 @@
 import asyncio
+from importlib.resources import files
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, cast
 
 import typer
 from dotenv import load_dotenv
 
 from ux_guardian.agents.tinyfish import TinyFishAgent
-from ux_guardian.config import Viewport, load_config, load_journeys, validate_url
+from ux_guardian.config import Environment, Viewport, load_config, load_journeys, validate_url
 from ux_guardian.demo import app as demo_app
-from ux_guardian.run import replay_pipeline, write_report
+from ux_guardian.report.models import Report
+from ux_guardian.run import live_checks, replay_pipeline, write_report
 
 app = typer.Typer(help="UX Guardian. Offline fixture replay and confirmed live journeys.")
 live = typer.Typer(help="Explicitly confirmed paid-run entry point.")
@@ -27,6 +29,7 @@ def run_command(
     pr: Annotated[int, typer.Option(min=1)],
     dry_run: bool = False,
     output: Path = Path("artifacts"),
+    checks_fixture: Path | None = None,
 ) -> None:
     try:
         url = validate_url(preview_url)
@@ -35,9 +38,18 @@ def run_command(
     if not dry_run:
         typer.echo("Live orchestration is not available in M0. Use --dry-run for fixtures.")
         raise typer.Exit(2)
-    report = asyncio.run(replay_pipeline(pr=pr, preview_url=url))
+    template = (
+        Report.model_validate_json(checks_fixture.read_text(encoding="utf-8"))
+        if checks_fixture
+        else Report.model_validate_json(
+            files("ux_guardian.fixtures")
+            .joinpath("m2_mobile_overlay.json")
+            .read_text(encoding="utf-8")
+        )
+    )
+    report = asyncio.run(replay_pipeline(pr=pr, preview_url=url, template=template))
     write_report(report, output)
-    typer.echo(f"Synthetic fixture replay saved to {output}. TinyFish cost: $0.00.")
+    typer.echo(f"Fixture replay saved to {output}. TinyFish cost: $0.00.")
 
 
 @live.command("journey")
@@ -81,3 +93,43 @@ def live_journey(
     typer.echo(f"Actual cost: ${result.cost_usd:.3f}")
     if not result.passed:
         raise typer.Exit(1)
+
+
+@live.command("checks")
+def live_checks_command(
+    env: str = "both",
+    output: Path = Path("artifacts") / "checks",
+    preview_url: str | None = None,
+) -> None:
+    """Run free Fetch and deterministic desktop/mobile checks. No Agent calls."""
+    if env not in {"both", "prod", "preview"}:
+        raise typer.BadParameter("Use --env both, prod, or preview")
+    config = load_config()
+    if preview_url:
+        url = validate_url(preview_url)
+        # Live overrides are restricted to this demo's Vercel deployments.
+        from urllib.parse import urlsplit
+
+        host = urlsplit(url).hostname or ""
+        if not (host.startswith("ux-guardian-demo-") and host.endswith("-aranish-uk.vercel.app")):
+            raise typer.BadParameter("Live checks require a UX Guardian demo preview")
+        config = config.model_copy(update={"preview_url": url})
+    typer.echo("Estimated TinyFish cost: $0.00 (Fetch only). Agent runs: 0.")
+    environments: list[Environment] = (
+        ["preview", "prod"] if env == "both" else [cast(Environment, env)]
+    )
+    report = asyncio.run(
+        live_checks(
+            config=config, journeys=load_journeys(), environments=environments, output=output
+        )
+    )
+    write_report(report, output)
+    for check in report.check_results:
+        typer.echo(
+            f"{check.journey_id} {check.env} {check.viewport}: {'PASS' if check.passed else 'FAIL'}"
+        )
+    for finding in report.findings:
+        typer.echo(f"{finding.severity}: {finding.title}")
+    if report.fetch.service_error:
+        typer.echo(report.fetch.service_error)
+    typer.echo(f"{len(report.findings)} confirmed findings. Evidence saved to {output}.")
