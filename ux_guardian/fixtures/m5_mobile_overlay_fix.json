@@ -1,0 +1,40 @@
+{
+  "provenance": {
+    "kind": "live OpenAI structured output",
+    "model": "gpt-4.1-mini",
+    "branch": "demo/mobile-signin-overlay",
+    "commit": "243e84788149b6aa6691aff0e1979bff88a07c39",
+    "search_requested": false,
+    "patch_applies": true
+  },
+  "context": {
+    "finding": {
+      "title": "Mobile sign-in blocked",
+      "severity": "P1",
+      "journey": "sign-in",
+      "viewport": "mobile",
+      "failing_step": "Click Sign in"
+    },
+    "observed_problem": "Mobile sign-in button is covered by the new overlay below 640px. The button is visible and enabled but trial click cannot receive input. Production mobile and preview desktop pass.",
+    "console_errors": [],
+    "failed_requests": [],
+    "hunks": [
+      {
+        "path": "demo-app/app/(auth)/login/page.tsx",
+        "patch": "diff --git a/demo-app/app/(auth)/login/page.tsx b/demo-app/app/(auth)/login/page.tsx\nindex 4a72300..c81797f 100644\n--- a/demo-app/app/(auth)/login/page.tsx\n+++ b/demo-app/app/(auth)/login/page.tsx\n@@ -6,6 +6,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{\n     <form action=\"/api/login\" method=\"post\"><label htmlFor=\"email\">Email</label>\n       <input id=\"email\" name=\"email\" type=\"email\" autoComplete=\"username\" required />\n       <label htmlFor=\"password\">Password</label><input id=\"password\" name=\"password\" type=\"password\" autoComplete=\"current-password\" required />\n-      <button type=\"submit\">Sign in</button></form>\n+      <div className=\"signin-submit\"><button type=\"submit\">Sign in</button>\n+        <div className=\"signin-overlay\" aria-hidden=\"true\" /></div></form>\n   </section>;\n }\n"
+      },
+      {
+        "path": "demo-app/app/globals.css",
+        "patch": "diff --git a/demo-app/app/globals.css b/demo-app/app/globals.css\nindex 6cf76c8..04a787f 100644\n--- a/demo-app/app/globals.css\n+++ b/demo-app/app/globals.css\n@@ -1,4 +1,10 @@\n :root { --ink: #243b32; --paper: #fbfaf6; --line: #dbddd5; --muted: #69736b; }\n+.signin-submit { position: relative; display: inline-block; }\n+.signin-overlay { display: none; }\n+@media (width < 640px) {\n+  .signin-overlay { display: block; position: absolute; inset: 20px 0 0;\n+    z-index: 10; background: rgba(190, 113, 61, .25); }\n+}\n * { box-sizing: border-box; }\n body { margin: 0; color: var(--ink); background: var(--paper); font-family: Arial, Helvetica, sans-serif; }\n a { color: inherit; text-underline-offset: 5px; }\n"
+      }
+    ]
+  },
+  "suggestion": {
+    "root_cause": "The new overlay element ('.signin-overlay') added above the 'Sign in' button on mobile (below 640px width) is positioned with a high z-index and covers the button, intercepting user input clicks and preventing the sign-in button from receiving click events while remaining visible and enabled.",
+    "suggestion_markdown": "Remove or disable the overlay element on mobile that sits above the 'Sign in' button by adjusting the CSS or HTML markup so it does not cover the interactive button area. Specifically, hide the '.signin-overlay' or reduce its z-index below the button's stacking context to allow input events to pass through and enable clicking the sign-in button on mobile screens.",
+    "patch": "diff --git a/demo-app/app/globals.css b/demo-app/app/globals.css\nindex 6cf76c8..9eb4648 100644\n--- a/demo-app/app/globals.css\n+++ b/demo-app/app/globals.css\n@@ -1,10 +1,7 @@\n :root { --ink: #243b32; --paper: #fbfaf6; --line: #dbddd5; --muted: #69736b; }\n-.signin-submit { position: relative; display: inline-block; }\n-.signin-overlay { display: none; }\n-@media (width < 640px) {\n-  .signin-overlay { display: block; position: absolute; inset: 20px 0 0;\n-    z-index: 10; background: rgba(190, 113, 61, .25); }\n-}\n+/* Disable overlay display to not block sign-in button on mobile */\n+.signin-submit { position: relative; display: inline-block; }\n+.signin-overlay { display: none !important; }\n * { box-sizing: border-box; }\n body { margin: 0; color: var(--ink); background: var(--paper); font-family: Arial, Helvetica, sans-serif; }\n a { color: inherit; text-underline-offset: 5px; }\n",
+    "confidence": "high",
+    "sources": []
+  },
+  "rendered": "**Root-cause hypothesis:** The new overlay element ('.signin-overlay') added above the 'Sign in' button on mobile (below 640px width) is positioned with a high z-index and covers the button, intercepting user input clicks and preventing the sign-in button from receiving click events while remaining visible and enabled.\n\nRemove or disable the overlay element on mobile that sits above the 'Sign in' button by adjusting the CSS or HTML markup so it does not cover the interactive button area. Specifically, hide the '.signin-overlay' or reduce its z-index below the button's stacking context to allow input events to pass through and enable clicking the sign-in button on mobile screens.\n\nConfidence: high\n\n```suggestion\n:root { --ink: #243b32; --paper: #fbfaf6; --line: #dbddd5; --muted: #69736b; }\n/* Disable overlay display to not block sign-in button on mobile */\n.signin-submit { position: relative; display: inline-block; }\n.signin-overlay { display: none !important; }\n* { box-sizing: border-box; }\nbody { margin: 0; color: var(--ink); background: var(--paper); font-family: Arial, Helvetica, sans-serif; }\na { color: inherit; text-underline-offset: 5px; }\n```"
+}

@@ -1,0 +1,40 @@
+{
+  "provenance": {
+    "kind": "live OpenAI structured output",
+    "model": "gpt-4.1-mini",
+    "branch": "demo/broken-cart-route",
+    "commit": "86f91aa0dcdef4c33b51dc7da9c4c90a08882396",
+    "search_requested": false,
+    "patch_applies": true
+  },
+  "context": {
+    "finding": {
+      "title": "Cart route returns 404",
+      "severity": "P0",
+      "journey": "search-product-cart",
+      "viewport": "all",
+      "failing_step": "Open /cart"
+    },
+    "observed_problem": "GET /cart returns origin HTTP 404 on preview on desktop and mobile; production /cart returns 200. The existing storefront cart link still targets /cart.",
+    "console_errors": [],
+    "failed_requests": [],
+    "hunks": [
+      {
+        "path": "demo-app/app/bag/page.tsx",
+        "patch": "diff --git a/demo-app/app/bag/page.tsx b/demo-app/app/bag/page.tsx\nnew file mode 100644\nindex 0000000..443ee38\n--- /dev/null\n+++ b/demo-app/app/bag/page.tsx\n@@ -0,0 +1,2 @@\n+import { CartContents } from \"../../components/storefront\";\n+export default function CartPage() { return <CartContents />; }\n"
+      },
+      {
+        "path": "demo-app/app/cart/page.tsx",
+        "patch": "diff --git a/demo-app/app/cart/page.tsx b/demo-app/app/cart/page.tsx\ndeleted file mode 100644\nindex 443ee38..0000000\n--- a/demo-app/app/cart/page.tsx\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-import { CartContents } from \"../../components/storefront\";\n-export default function CartPage() { return <CartContents />; }\n"
+      }
+    ]
+  },
+  "suggestion": {
+    "root_cause": "The route /cart was deleted by removing the file app/cart/page.tsx and creating a new file at app/bag/page.tsx that renders the same component. However, the existing storefront links still point to /cart, causing 404 errors because /cart no longer exists.",
+    "suggestion_markdown": "Restore the /cart route by recreating the app/cart/page.tsx file with the CartContents component, or update all storefront links to point to /bag if /bag is the intended new cart path. This will ensure that requests to /cart are properly handled and the cart page loads correctly.",
+    "patch": "diff --git a/demo-app/app/cart/page.tsx b/demo-app/app/cart/page.tsx\nnew file mode 100644\nindex 0000000..443ee38\n--- /dev/null\n+++ b/demo-app/app/cart/page.tsx\n@@ -0,0 +1,2 @@\n+import { CartContents } from \"../../components/storefront\";\n+export default function CartPage() { return <CartContents />; }\n",
+    "confidence": "high",
+    "sources": []
+  },
+  "rendered": "**Root-cause hypothesis:** The route /cart was deleted by removing the file app/cart/page.tsx and creating a new file at app/bag/page.tsx that renders the same component. However, the existing storefront links still point to /cart, causing 404 errors because /cart no longer exists.\n\nRestore the /cart route by recreating the app/cart/page.tsx file with the CartContents component, or update all storefront links to point to /bag if /bag is the intended new cart path. This will ensure that requests to /cart are properly handled and the cart page loads correctly.\n\nConfidence: high\n\n```suggestion\nimport { CartContents } from \"../../components/storefront\";\nexport default function CartPage() { return <CartContents />; }\n```"
+}

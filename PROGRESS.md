@@ -217,3 +217,49 @@ when pushed. A CLI dry-run smoke and `git diff --check` also pass.
 
 M2 acceptance is complete. No push, PR publishing, Agent call, payment submission
 or production modification was performed. M3–M6 remain out of scope.
+
+## M5 (modules, parallel)
+
+2026-10-11, branch `feat/m5-modules`. Standalone FR9 modules only; M3/M4 and
+pipeline wiring remain owned by the other worker. No changes to `run.py`,
+`report/render.py`, `github/`, `diff/` or workflows.
+
+- `enrich/fix.py` defines its own `FixContext`, finding/hunk input models and
+  `FixSuggestion`. It uses the existing async `LlmClient.complete_json` protocol.
+  `enrich/llm.py` provides a minimal OpenAI adapter using strict JSON-schema output,
+  `LLM_API_KEY`, optional `LLM_MODEL`, no redirects and no automatic retries.
+- Patch gating checks confidence, unified-text syntax, hunk counts and every
+  source/destination path against the supplied hunks. Conflicting Git/file headers,
+  traversal, Git metadata paths, binary patches, symlinks and metadata-only renames
+  are rejected. `validate_patch` runs `git apply --check` with no working-tree/index
+  writes. `render_fix` emits a suggestion for one file/one hunk and a diff otherwise;
+  low confidence is labeled `Hypothesis:` and emits no patch. Model-prose fences
+  cannot bypass the patch gate. GitHub suggestions for new files present contents
+  but cannot be applied inline without an existing review line.
+- `tinyfish/search.py` uses GET on the Search host with `X-API-Key` from the
+  environment. One client per run provides a normalized query cache, concurrent
+  query coalescing and a rolling 30/minute limiter. Searches are restricted to
+  external errors/library evidence; generic overlay, route 404 and local-module
+  failures are skipped. At most two distinct HTTP(S) result URLs may be cited;
+  invented LLM URLs are removed. Optional Search failures are cached without retry.
+- Exactly **two live LLM requests** (gpt-4.1-mini), **zero Search requests** and
+  **zero Agent requests**. Contexts came from the real demo branch diffs:
+  mobile sign-in overlay `243e847` (P1) and broken cart `86f91aa` (P0). Both
+  returned high-confidence patches, each passing `git apply --check` against
+  temporary preview file fragments. The app diffs directly explain both failures,
+  so FR9 correctly skips Search. Redacted context/result/render fixtures are saved
+  as `m5_mobile_overlay_fix.json` and `m5_broken_cart_fix.json`; no credentials or
+  raw response headers are saved. These checks establish applicability, not a new
+  hosted browser verification of the suggested changes.
+- `tests/test_m5.py` uses only fake LLMs, mocked HTTP transports and temporary Git
+  repositories. It covers render variants and exact recorded Markdown, high/medium/
+  low confidence, file gates, applicability without mutation, Search heuristics,
+  two-source limits, concurrent caching, rolling throttling, redaction, failures,
+  auth headers and strict OpenAI schema requests. Both live fixtures replay without
+  network. Integration contracts and limitations are in `enrich/README.md`.
+
+Validation on Windows: `uv run pytest` **146 passed, 11 local-demo harness tests
+skipped**; `uv run ruff check .` passes; `uv run pyright` zero errors;
+`git diff --check` passes. Existing judge truth-table/severity tests and FR10 report
+snapshots remain green. Linux was not executed locally. Local commit only; no
+GitHub credentials, push, publishing or production changes.
