@@ -2,10 +2,44 @@
 
 CodeRabbit reviews your code. TinyFish reviews your user experience.
 
-M0–M2 provide the demo storefront, desktop TinyFish Agent adapter, desktop/mobile
-Playwright checks, free Fetch pre-check and comparative judge. Diff intelligence,
-GitHub publishing and enrichment follow in M3–M5. See [PRD.md](PRD.md) and
-[PROGRESS.md](PROGRESS.md) for scope and verified status.
+## How it works
+
+1. Diff analyzer → selects customer journeys affected by the PR.
+2. TinyFish Fetch pre-check → compares journey entry pages on preview and production.
+3. Playwright desktop/mobile checks vs production → captures deterministic signals and screenshots.
+4. TinyFish Agent customer journeys → tests preview and production at the default desktop viewport; the judge confirms regressions against the production baseline.
+5. Sticky PR comment → repro steps, severity, screenshots and an AI fix suggestion.
+
+## Live demos
+
+- [PR #1: P1 mobile sign-in](https://github.com/aranish-uk/ux-guardian/pull/1)
+- [PR #2: P0 broken cart route](https://github.com/aranish-uk/ux-guardian/pull/2)
+- [PR #3: clean, 0 findings](https://github.com/aranish-uk/ux-guardian/pull/3)
+- [Demo store](https://ux-guardian-demo.vercel.app)
+
+See [the three-minute demo script](docs/DEMO.md) for the walkthrough and architecture.
+
+## Built on open source
+
+A fork of [browser-use/vibetest-use](https://github.com/browser-use/vibetest-use),
+with browser-use replaced by TinyFish for customer journeys. Playwright supplies
+deterministic desktop/mobile checks; GitHub Actions runs the PR workflow.
+The original attribution and [NOTICE](NOTICE) are retained below.
+
+## Honest limitations
+
+- TinyFish Agent has no viewport control. Agents use the default desktop viewport;
+  Playwright covers mobile, including controls blocked by overlays.
+- Agent concurrency is 2 by default, so runs queue rather than all starting together.
+- Returned Agent screenshot URLs omitted `/v1` and failed with HTTP 401. The adapter
+  works around this by correcting the Agent-host path to
+  `/v1/runs/{id}/steps/{step}/screenshot` before downloading. Some step images can
+  still be unavailable; screenshots are evidence, not the regression verdict.
+- On this M4 base, dispatch is manual and screenshots are linked through Actions
+  artifacts. Agent-only failures remain unconfirmed without a retry; AI fix
+  enrichment is separate M5 work. The linked demos show the prepared demo results.
+
+See [PRD.md](PRD.md) and [PROGRESS.md](PROGRESS.md) for scope and verified status.
 
 ## Development
 

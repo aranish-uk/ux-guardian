@@ -333,3 +333,20 @@ and manual rerun wording; mandatory judge/severity tests remain green.
 No GitHub credentials are available here, so real PR publication and Linux
 workflow execution remain for the supervisor after push/merge and dispatch.
 Nothing was pushed, deployed, merged, or sent to a live API.
+
+
+## M6 — demo documentation only
+
+2026-10-11, `feat/m6-docs` branched from `feat/m4`. Rewrote the README
+introduction with the pitch, five-line flow, three PR links, demo store, open-source
+foundation and honest viewport/concurrency/screenshot-path limitations. Retained
+the existing upstream attribution. Added `docs/DEMO.md`: a timed three-minute
+walkthrough, manual workflow command and Mermaid architecture. The script
+distinguishes prepared demo results and target MVP enrichment from this M4 base.
+
+Verified locally: `uv run pytest -q` (140 passed, 11 local-demo tests skipped),
+`uv run ruff check .` (passed), `uv run pyright` (zero errors), and
+`git diff --check`. Workflow inputs and the screenshot workaround were checked
+against local files. Documentation only; no code changes, live API calls, workflow
+dispatches or pushes. This does not claim the M6 five-run acceptance or video
+recording is complete.
